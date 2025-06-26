@@ -37,7 +37,6 @@ urlpatterns = [
     path('cliente/', include('apps.cliente.urls')),
     path('reserva/', include('apps.reserva.urls', namespace='reserva')),
     path('web/', include('apps.web.urls')),
-    path('', include('apps.web.urls')),
 ]
 
 # Serve media files in development

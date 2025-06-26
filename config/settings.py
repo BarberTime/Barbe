@@ -118,16 +118,16 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'railway',
-#         'USER': 'postgres',
-#         'PASSWORD': 'uxlYwBZMkBwwBrSYnwunPPoXsOVlSfzN',
-#         'HOST': 'ballast.proxy.rlwy.net',  
-#         'PORT': '23055',      
-#     }
-# }
+DATABASES = {
+     'default': {
+         'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'railway',
+        'USER': 'postgres',
+        'PASSWORD': 'sZIoKfgYUTSkLUQCMcBtVffyYEvhNTAq',
+        'HOST': 'crossover.proxy.rlwy.net',  
+        'PORT': '54456',      
+    }
+}
 
 #DATABASES = { por si las dudas
 #    'default': {
@@ -140,16 +140,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 #    }
 #}
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'barbero_bd',
-        'USER': 'postgres',
-        'PASSWORD': '1373',
-        'HOST': 'localhost',
-        'PORT': '5432',  
-    }
-}
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',

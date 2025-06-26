@@ -4,7 +4,7 @@ from . import views
 from apps.reserva import views as reserva_views
 from django.conf import settings
 from django.conf.urls.static import static
-
+app_name = 'web'
 urlpatterns = [
     path('', views.index, name='index'),
     path('detalle-negocio/<uuid:negocio_id>/', views.detalle_negocio, name='detalle_negocio'),
@@ -48,4 +48,4 @@ urlpatterns = [
     path('check-employee-availability/', views.check_employee_availability, name='check_employee_availability'),
 ]
 
-app_name = 'web'
+
