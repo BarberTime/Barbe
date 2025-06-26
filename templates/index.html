@@ -110,9 +110,11 @@
                 <a href="#negocios" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
                     <i class="fas fa-building mr-3 w-5"></i>Negocios
                 </a>
-                <a href="#reservas" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
-                    <i class="fas fa-calendar mr-3 w-5"></i>Reservas
+                {% if request.session.cliente_id %}
+                <a href="#" onclick="abrirModalReservas()" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                    <i class="fas fa-calendar-alt mr-2"></i>Mis Reservas
                 </a>
+                {% endif %}
                 {% if not request.session.cliente_id %}
                 <button onclick="abrirModalLoginCliente(); toggleMobileMenu();" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center w-full text-left">
                     <i class="fas fa-sign-in-alt mr-3 w-5"></i>Iniciar Sesión
