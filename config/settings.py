@@ -25,8 +25,7 @@ DEBUG = True
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 DEBUG = True
-
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['barbertime.up.railway.app', 'localhost', '127.0.0.1']
 
 # CORS Configuration
 CORS_ALLOW_ALL_ORIGINS = False
