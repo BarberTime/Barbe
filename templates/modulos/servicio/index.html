@@ -1,0 +1,246 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Servicios{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Mostrar mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header con título y botón -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestión de Servicios</h1>
+            <p class="text-gray-600 mt-1">Administra todos los servicios que ofrece tu negocio</p>
+        </div>
+        <div class="flex space-x-3">
+            <a href="{% url 'servicio:categoria_index' %}" 
+               class="inline-flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors duration-200 shadow-sm">
+                <i class="fas fa-tags mr-2"></i>Categorías
+            </a>
+            <a href="{% url 'servicio:crear' %}" 
+               class="inline-flex items-center px-4 py-2 bg-rojo-principal text-white rounded-lg hover:bg-rojo-oscuro transition-colors duration-200 shadow-sm">
+                <i class="fas fa-plus mr-2"></i>Nuevo Servicio
+            </a>
+        </div>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i class="fas fa-cut text-blue-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Total Servicios</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ servicios|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <i class="fas fa-tags text-green-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Categorías</p>
+                    <p class="text-lg font-semibold text-gray-900">
+                        {% regroup servicios by categoria as categorias_agrupadas %}
+                        {{ categorias_agrupadas|length }}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-yellow-100 rounded-lg">
+                    <i class="fas fa-dollar-sign text-yellow-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Precio Promedio</p>
+                    <p class="text-lg font-semibold text-gray-900">
+                        {% if servicios %}
+                            Bs. {% widthratio servicios|length 1 servicios|length %}
+                        {% else %}
+                            Bs. 0
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-purple-100 rounded-lg">
+                    <i class="fas fa-clock text-purple-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Duración Promedio</p>
+                    <p class="text-lg font-semibold text-gray-900">
+                        {% if servicios %}45{% else %}0{% endif %} min
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de servicios moderna -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Header de la tabla -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div class="col-span-4">
+                    <i class="fas fa-cut mr-2"></i>Servicio
+                </div>
+                <div class="col-span-2">
+                    <i class="fas fa-tag mr-2"></i>Categoría
+                </div>
+                <div class="col-span-2">
+                    <i class="fas fa-dollar-sign mr-2"></i>Precio
+                </div>
+                <div class="col-span-2">
+                    <i class="fas fa-clock mr-2"></i>Duración
+                </div>
+                <div class="col-span-1">
+                    <i class="fas fa-info-circle mr-2"></i>Estado
+                </div>
+                <div class="col-span-1 text-right">
+                    <i class="fas fa-cogs mr-2"></i>Acciones
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de la tabla -->
+        <div class="divide-y divide-gray-200">
+            {% for servicio in servicios %}
+            <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+                <div class="grid grid-cols-12 gap-4 items-center">
+                    <!-- Servicio -->
+                    <div class="col-span-4">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-12 w-12">
+                                {% if servicio.imagen %}
+                                    <img src="{{ servicio.imagen.url }}" alt="{{ servicio.nombre }}" class="h-12 w-12 rounded-lg object-cover">
+                                {% else %}
+                                    <div class="h-12 w-12 rounded-lg bg-gradient-to-r from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                                        <i class="fas fa-cut"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">{{ servicio.nombre }}</p>
+                                <p class="text-xs text-gray-500">
+                                    {{ servicio.descripcion|truncatewords:8 }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Categoría -->
+                    <div class="col-span-2">
+                        <span class="inline-block bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded-full font-medium">
+                            {{ servicio.categoria.nombre }}
+                        </span>
+                    </div>
+
+                    <!-- Precio -->
+                    <div class="col-span-2">
+                        <div class="text-sm">
+                            <p class="font-semibold text-gray-900">Bs. {{ servicio.precio }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Duración -->
+                    <div class="col-span-2">
+                        <div class="text-sm">
+                            <p class="font-medium text-gray-900">
+                                <i class="fas fa-clock mr-1 text-gray-400"></i>
+                                {{ servicio.duracion }} min
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="col-span-1">
+                        {% if servicio.estado == 'activo' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                <span class="w-1.5 h-1.5 mr-1.5 bg-green-400 rounded-full"></span>
+                                Activo
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                <span class="w-1.5 h-1.5 mr-1.5 bg-red-400 rounded-full"></span>
+                                Inactivo
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="col-span-1 text-right">
+                        <div class="flex justify-end space-x-2">
+                            <a href="{% url 'servicio:editar' servicio.id_servicio %}" 
+                               class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors duration-150">
+                                <i class="fas fa-edit mr-1"></i>
+                                Editar
+                            </a>
+                            <a href="{% url 'servicio:eliminar' servicio.id_servicio %}" 
+                               class="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-150">
+                                <i class="fas fa-trash-alt mr-1"></i>
+                                Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Estado vacío -->
+            <div class="px-6 py-12 text-center">
+                <div class="mx-auto h-12 w-12 text-gray-400">
+                    <i class="fas fa-cut text-4xl"></i>
+                </div>
+                <h3 class="mt-4 text-sm font-medium text-gray-900">No hay servicios</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Comienza creando tu primer servicio para tu negocio.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'servicio:crear' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-rojo-principal hover:bg-rojo-oscuro">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nuevo Servicio
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animaciones suaves */
+.hover\:bg-gray-50:hover {
+    background-color: #f9fafb;
+}
+
+/* Gradientes para avatares */
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+/* Efectos de hover para botones */
+.transition-colors {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+</style>
+{% endblock %}

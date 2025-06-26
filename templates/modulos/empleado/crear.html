@@ -1,0 +1,265 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Crear Empleado{% endblock %}
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+{% block contenido_dashboard %}
+<div class="max-w-4xl mx-auto p-6 bg-gray-50 min-h-screen">
+    <!-- Breadcrumb -->
+    <nav class="flex mb-6" aria-label="Breadcrumb">
+        <ol class="inline-flex items-center space-x-2 text-sm">
+            <li class="inline-flex items-center">
+                <i class="fas fa-users text-gray-600 mr-2"></i>
+                <a href="{% url 'empleado:index' %}" class="text-gray-600 hover:text-red-600">Empleados</a>
+            </li>
+            <li>
+                <div class="flex items-center">
+                    <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                    <span class="text-gray-500">Crear Empleado</span>
+                </div>
+            </li>
+        </ol>
+    </nav>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-6 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        {% if message.tags == 'success' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif message.tags == 'error' %}
+                            <i class="fas fa-exclamation-circle"></i>
+                        {% elif message.tags == 'warning' %}
+                            <i class="fas fa-exclamation-triangle"></i>
+                        {% else %}
+                            <i class="fas fa-info-circle"></i>
+                        {% endif %}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm">{{ message }}</p>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Contenedor principal -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200">
+        <!-- Header -->
+        <div class="px-6 py-4 border-b border-gray-200">
+            <div class="flex items-center">
+                <div class="flex-shrink-0">
+                    <div class="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center shadow-lg">
+                        <i class="fas fa-user-plus text-white text-lg"></i>
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h1 class="text-xl font-semibold text-gray-900">Crear Nuevo Empleado</h1>
+                    <p class="text-sm text-gray-600">Completa la información del nuevo empleado</p>
+                </div>
+            </div>
+        </div>
+        
+        <form method="post" enctype="multipart/form-data" class="p-6 space-y-8">
+            {% csrf_token %}
+            
+            {% if es_barbero %}
+                <!-- Negocio Asignado -->
+                <div class=" border border-blue-200 rounded-lg p-5">
+                    <div class="flex items-center mb-3">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                            <i class="fas fa-store text-white"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-800">Negocio Asignado</h3>
+                    </div>
+                    <div class="text-lg font-semibold text-gray-900 mb-1">
+                        {{ negocio_actual.nombre }}
+                    </div>
+                    <p class="text-sm text-gray-600">El empleado será asignado automáticamente a tu negocio</p>
+                </div>
+            {% else %}
+                <!-- Solo superadmin puede seleccionar negocio -->
+                <div class=" border border-blue-200 rounded-lg p-5">
+                    <div class="flex items-center mb-4">
+                        <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                            <i class="fas fa-store text-white"></i>
+                        </div>
+                        <h3 class="text-base font-semibold text-gray-800">Negocio *</h3>
+                    </div>
+                    <select name="negocio" id="negocio" class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                        <option value="">Seleccionar negocio...</option>
+                        {% for negocio in negocios %}
+                            <option value="{{ negocio.id_negocio }}">{{ negocio.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            {% endif %}
+            
+            <!-- Foto de Perfil -->
+            <div class=" border border-purple-200 rounded-lg p-5">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                        <i class="fas fa-camera text-white"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-800">Foto de Perfil</h3>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center border-2 border-gray-200">
+                            <img id="preview" class="w-16 h-16 rounded-full object-cover hidden" alt="Vista previa">
+                            <span id="placeholder" class="text-gray-400 text-xs">Foto</span>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center space-x-3">
+                            <label for="foto_perfil" class="cursor-pointer">
+                                <span class="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 transition-colors shadow-sm">
+                                    Seleccionar archivo
+                                </span>
+                                <input type="file" name="foto_perfil" id="foto_perfil" accept="image/*" class="hidden">
+                            </label>
+                            <span id="file-name" class="text-sm text-gray-500">Ningún archivo seleccionado</span>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">PNG, JPG, GIF hasta 10MB</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Información Personal -->
+            <div class=" border border-green-200 rounded-lg p-5">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                        <i class="fas fa-user text-white"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-800">Información Personal</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombre" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre *
+                        </label>
+                        <input type="text" name="nombre" id="nombre" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                               placeholder="Ingresa el nombre" required>
+                    </div>
+                    <div>
+                        <label for="apellido" class="block text-sm font-medium text-gray-700 mb-1">
+                            Apellido *
+                        </label>
+                        <input type="text" name="apellido" id="apellido" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                               placeholder="Ingresa el apellido" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="telefono" class="block text-sm font-medium text-gray-700 mb-1">
+                            Teléfono *
+                        </label>
+                        <input type="tel" name="telefono" id="telefono" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+                               placeholder="Ej: +1234567890" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de Acceso -->
+            <div class=" border border-orange-200 rounded-lg p-5">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                        <i class="fas fa-key text-white"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-800">Información de Acceso</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="usuario" class="block text-sm font-medium text-gray-700 mb-1">
+                            Nombre de Usuario *
+                        </label>
+                        <input type="text" name="usuario" id="usuario" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" 
+                               placeholder="Nombre de usuario único" required>
+                    </div>
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700 mb-1">
+                            Contraseña *
+                        </label>
+                        <input type="password" name="password" id="password" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500" 
+                               placeholder="Contraseña segura" required>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información Profesional -->
+            <div class=" border border-indigo-200 rounded-lg p-5">
+                <div class="flex items-center mb-4">
+                    <div class="w-8 h-8 bg-indigo-500 rounded-full flex items-center justify-center shadow-md mr-3">
+                        <i class="fas fa-briefcase text-white"></i>
+                    </div>
+                    <h3 class="text-base font-semibold text-gray-800">Información Profesional</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="especialidad" class="block text-sm font-medium text-gray-700 mb-1">
+                            Especialidad *
+                        </label>
+                        <input type="text" name="especialidad" id="especialidad" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                               placeholder="Ej: Corte de cabello, Barba, etc." required>
+                    </div>
+                    <div>
+                        <label for="experiencia_anios" class="block text-sm font-medium text-gray-700 mb-1">
+                            Años de Experiencia *
+                        </label>
+                        <input type="number" name="experiencia_anios" id="experiencia_anios" 
+                               class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                               placeholder="0" required min="0">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+                <a href="{% url 'empleado:index' %}" 
+                   class="inline-flex items-center px-6 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancelar
+                </a>
+                <button type="submit" 
+                        class="inline-flex items-center px-6 py-2 bg-red-600 text-white text-sm font-medium rounded-md hover:bg-red-700 transition-colors shadow-sm">
+                    <i class="fas fa-save mr-2"></i>Crear Empleado
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.getElementById('foto_perfil').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    const preview = document.getElementById('preview');
+    const placeholder = document.getElementById('placeholder');
+    const fileName = document.getElementById('file-name');
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+            placeholder.classList.add('hidden');
+        }
+        reader.readAsDataURL(file);
+        fileName.textContent = file.name;
+    } else {
+        preview.classList.add('hidden');
+        placeholder.classList.remove('hidden');
+        fileName.textContent = 'Ningún archivo seleccionado';
+    }
+});
+</script>
+{% endblock %}

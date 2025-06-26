@@ -1,0 +1,170 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Pagos{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Botón para crear nuevo pago -->
+    <button onclick="loadFormModal('{% url 'pago:crear' %}', 'Registrar Pago')" 
+            class="bg-rojo-principal text-white px-4 py-2 rounded-lg hover:bg-rojo-oscuro transition-colors duration-200 mb-6">
+        <i class="fas fa-plus mr-2"></i>Registrar Pago
+    </button>
+
+    <!-- Tabla de pagos -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cliente</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Servicio</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for pago in pagos %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ pago.reserva.cliente.nombre }} {{ pago.reserva.cliente.apellido }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ pago.reserva.servicio.nombre }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${{ pago.monto }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">{{ pago.metodo_pago }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-500">{{ pago.fecha_pago }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button onclick="loadFormModal('{% url 'pago:editar' pago.id_pago %}', 'Editar Pago')" 
+                                class="text-rojo-principal hover:text-rojo-oscuro mr-2">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="showConfirmModal('Eliminar Pago', '¿Estás seguro de eliminar este pago?', function() {
+                            fetch('{% url 'pago:eliminar' pago.id_pago %}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': '{{ csrf_token }}'
+                                }
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    showSuccessMessage(data.message);
+                                    setTimeout(() => {
+                                        window.location.reload();
+                                    }, 1500);
+                                } else {
+                                    alert(data.message);
+                                }
+                            })
+                            .catch(error => {
+                                alert('Error al eliminar el pago');
+                            });
+                        }, 'fas fa-trash-alt', 'text-red-500')">
+                            <i class="fas fa-trash-alt text-red-500"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center text-gray-500">
+                        No hay pagos registrados
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Actualizar la tabla después de crear/editar
+    function updateTable(data) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">${data.cliente_nombre} ${data.cliente_apellido}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">${data.servicio_nombre}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm font-medium text-gray-900">$${data.monto}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-900">${data.metodo_pago}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+                <div class="text-sm text-gray-500">${data.fecha_pago}</div>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                <button onclick="loadFormModal('{% url 'pago:editar' data.id_pago %}', 'Editar Pago')" 
+                        class="text-rojo-principal hover:text-rojo-oscuro mr-2">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button onclick="showConfirmModal('Eliminar Pago', '¿Estás seguro de eliminar este pago?', function() {
+                    fetch('{% url 'pago:eliminar' data.id_pago %}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showSuccessMessage(data.message);
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 1500);
+                        } else {
+                            alert(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error al eliminar el pago');
+                    });
+                }, 'fas fa-trash-alt', 'text-red-500')">
+                    <i class="fas fa-trash-alt text-red-500"></i>
+                </button>
+            </td>
+        `;
+        document.querySelector('tbody').prepend(row);
+    }
+
+    // Sobrescribir la función submitModalForm para actualizar la tabla
+    function submitModalForm(form) {
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: form.method,
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showSuccessMessage(data.message);
+                closeUniversalModal();
+                if (data.pago) {
+                    updateTable(data.pago);
+                }
+            } else {
+                displayFormErrors(data.errors);
+            }
+        })
+        .catch(error => {
+            alert('Error al procesar el formulario');
+        });
+    }
+</script>
+{% endblock %}

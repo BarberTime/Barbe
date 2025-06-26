@@ -1,0 +1,801 @@
+<!-- Modal de Reserva -->
+<div id="reservationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transform scale-95 opacity-0 transition-all duration-300" id="reservationModalContent">
+        <!-- Header del Modal -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl z-10">
+            <div class="flex items-center justify-between">
+                <h2 class="text-2xl font-bold text-gray-900">Reservar Cita</h2>
+                <button onclick="closeReservationModal()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido del Modal scrollable -->
+        <div class="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+            <form id="reservationForm" method="POST" action="{% url 'web:crear_reserva' %}">
+                {% csrf_token %}
+                <input type="hidden" name="negocio_id" value="{{ negocio.id_negocio }}">
+                <input type="hidden" name="servicios_ids" id="selectedServicesIds">
+                <input type="hidden" name="empleado_id" id="selectedEmployeeId">
+                <input type="hidden" name="fecha" id="selectedDate">
+                <input type="hidden" name="hora" id="selectedTime">
+                
+                <!-- Selector de Fecha -->
+                <div class="mb-8">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Seleccionar Fecha</h3>
+                        <div class="flex items-center space-x-2">
+                            <button type="button" onclick="previousWeek()" class="p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <span id="currentMonth" class="text-lg font-semibold text-gray-900">Junio 2025</span>
+                            <button type="button" onclick="nextWeek()" class="p-2 text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Días de la semana -->
+                    <div class="grid grid-cols-7 gap-2" id="weekDays">
+                        <!-- Los días se generarán dinámicamente con JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Selector de Horario -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Seleccionar Horario</h3>
+                    
+                    <!-- Filtros de tiempo -->
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <button type="button" onclick="filterTimeSlots('morning')" 
+                                class="time-filter px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-300 bg-red-100 border-red-300"
+                                data-period="morning">
+                            Mañana
+                        </button>
+                        <button type="button" onclick="filterTimeSlots('afternoon')" 
+                                class="time-filter px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-300"
+                                data-period="afternoon">
+                            Tarde
+                        </button>
+                        <button type="button" onclick="filterTimeSlots('evening')" 
+                                class="time-filter px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-300"
+                                data-period="evening">
+                            Noche
+                        </button>
+                    </div>
+                    
+                    <!-- Horarios disponibles -->
+                    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2" id="timeSlots">
+                        <!-- Los horarios se generarán dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Mensaje de disponibilidad -->
+                <div id="availabilityMessage" class="mb-4 hidden">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                        <div class="flex">
+                            <div class="flex-shrink-0">
+                                <svg class="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                </svg>
+                            </div>
+                            <div class="ml-3">
+                                <p id="availabilityText" class="text-sm text-yellow-700"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empleados disponibles -->
+                <div id="availableEmployees" class="mb-4 hidden">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-2">Empleados disponibles para esta hora:</h3>
+                    <div id="availableEmployeesList" class="grid grid-cols-2 gap-3">
+                        <!-- Los empleados disponibles se mostrarán aquí dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Servicios Seleccionados -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Servicios Seleccionados</h3>
+                    <div id="selectedServicesList" class="space-y-3">
+                        <!-- Los servicios se mostrarán aquí dinámicamente -->
+                    </div>
+                </div>
+                
+                <!-- Selección de Empleado -->
+                <div class="mb-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <span class="text-sm text-gray-600">Personal: </span>
+                                <span class="text-sm font-medium" id="selectedStaffName">Sin preferencia</span>
+                            </div>
+                            <button type="button" onclick="openStaffModal()" 
+                                    class="text-sm text-red-600 hover:text-red-700 transition-colors duration-300">
+                                Cambiar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agregar otro servicio -->
+                <div class="mb-6">
+                    <button type="button" onclick="openServiceModal()" 
+                            class="flex items-center text-red-600 hover:text-red-700 transition-colors duration-300">
+                        <i class="fas fa-plus mr-2"></i>
+                        Agregar otro servicio
+                    </button>
+                </div>
+                
+                <!-- Total -->
+                <div class="border-t border-gray-200 pt-4 mb-6">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <span class="text-sm text-gray-600">Total:</span>
+                            <span class="text-sm text-gray-600 ml-2" id="totalDuration">0min</span>
+                        </div>
+                        <div class="text-2xl font-bold text-gray-900" id="totalPrice">Bs. 0.00</div>
+                    </div>
+                </div>
+                
+                <!-- Botón de Continuar -->
+                <button type="button" onclick="handleReservationSubmit()"
+                        class="w-full bg-red-600 text-white py-4 rounded-lg font-semibold text-lg hover:bg-red-700 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                        id="continueButton">
+                    Continuar
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Selección de Empleado -->
+<div id="staffModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[80vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="staffModalContent">
+        <!-- Header fijo -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-4 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Seleccionar Empleado</h3>
+                <button onclick="closeStaffModal()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido scrollable -->
+        <div class="overflow-y-auto max-h-[calc(80vh-80px)] p-4">
+            <div class="space-y-3">
+                <div class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-300" 
+                     onclick="selectStaff(null, 'Sin preferencia')">
+                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3">
+                        <i class="fas fa-user text-gray-600"></i>
+                    </div>
+                    <span class="font-medium text-gray-900">Sin preferencia</span>
+                </div>
+                
+                {% for empleado in empleados %}
+                <div class="flex items-center p-3 rounded-lg border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors duration-300" 
+                     onclick="selectStaff('{{ empleado.id_empleado }}', '{{ empleado.nombre }}')">
+                    <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mr-3 overflow-hidden">
+                        {% if empleado.foto %}
+                            <img src="{{ empleado.foto.url }}" alt="{{ empleado.nombre }}" class="w-full h-full rounded-full object-cover">
+                        {% else %}
+                            <i class="fas fa-user text-gray-600"></i>
+                        {% endif %}
+                    </div>
+                    <span class="font-medium text-gray-900">{{ empleado.nombre }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Selección de Servicios -->
+<div id="serviceModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full max-h-[80vh] overflow-hidden p-6 transform scale-95 opacity-0 transition-all duration-300" id="serviceModalContent">
+        <!-- Header fijo -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 pb-4 mb-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">Seleccionar Servicio</h3>
+                <button onclick="closeServiceModal()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido scrollable -->
+        <div class="overflow-y-auto max-h-[calc(80vh-120px)]" id="availableServicesList">
+            <div class="space-y-3">
+                {% for servicio in servicios %}
+                <div class="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors duration-300" 
+                     id="service_{{ servicio.id_servicio }}">
+                    <div class="flex-1 min-w-0">
+                        <h4 class="font-semibold text-gray-900 truncate">{{ servicio.nombre }}</h4>
+                        <p class="text-gray-600 text-sm line-clamp-2">{{ servicio.descripcion }}</p>
+                        <p class="text-gray-500 text-xs mt-1">{{ servicio.duracion }} minutos</p>
+                    </div>
+                    <div class="text-right ml-4 flex-shrink-0">
+                        <p class="text-lg font-bold text-gray-900">Bs. {{ servicio.precio }}</p>
+                        <button onclick="addServiceToReservation('{{ servicio.id_servicio }}', '{{ servicio.nombre }}', '{{ servicio.precio }}', '{{ servicio.duracion }}')"
+                                class="mt-1 bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors duration-300 service-add-btn">
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Variables globales
+let currentDate = new Date();
+let selectedServices = []; // Array para múltiples servicios
+let selectedEmployee = null;
+let selectedDateValue = null;
+let selectedTimeValue = null;
+let currentTimePeriod = 'morning';
+
+// Función para manejar el envío de la reserva
+function handleReservationSubmit() {
+    if (!selectedDateValue || !selectedTimeValue || selectedServices.length === 0) {
+        alert('Por favor complete todos los campos requeridos.');
+        return;
+    }
+    
+    // Crear objeto con datos de la reserva
+    const reservationData = {
+        serviceId: selectedServices[0].id,
+        serviceName: selectedServices.map(s => s.name).join(', '),
+        servicePrice: selectedServices.reduce((sum, s) => sum + s.price, 0),
+        serviceDuration: selectedServices.reduce((sum, s) => sum + s.duration, 0),
+        fecha: selectedDateValue,
+        hora: selectedTimeValue,
+        empleado: selectedEmployee ? selectedEmployee.name : 'Sin preferencia'
+    };
+    
+    // Cerrar modal de reserva y abrir modal de confirmación
+    closeReservationModal();
+    setTimeout(() => {
+        openConfirmationModal(reservationData);
+    }, 300);
+}
+
+// Validar formulario
+function validateForm() {
+    const continueButton = document.getElementById('continueButton');
+    const isValid = selectedDateValue && selectedTimeValue && selectedServices.length > 0;
+    
+    if (isValid) {
+        continueButton.disabled = false;
+        continueButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    } else {
+        continueButton.disabled = true;
+        continueButton.classList.add('opacity-50', 'cursor-not-allowed');
+    }
+}
+
+// Actualizar lista de servicios seleccionados
+function updateSelectedServicesList() {
+    const container = document.getElementById('selectedServicesList');
+    container.innerHTML = '';
+    
+    selectedServices.forEach((service, index) => {
+        const serviceElement = document.createElement('div');
+        serviceElement.className = 'bg-gray-50 rounded-lg p-4';
+        serviceElement.innerHTML = `
+            <div class="flex justify-between items-start mb-2">
+                <div class="flex-1 min-w-0">
+                    <h4 class="font-semibold text-gray-900 truncate">${service.name}</h4>
+                    <p class="text-gray-600 text-sm" id="serviceTime_${index}">Tiempo por definir</p>
+                </div>
+                <div class="text-right ml-4 flex-shrink-0">
+                    <p class="text-lg font-bold text-gray-900">Bs.${service.price.toFixed(2)}</p>
+                    ${selectedServices.length > 1 ? `
+                        <button type="button" onclick="removeService(${index})" 
+                                class="text-red-500 hover:text-red-700 transition-colors duration-300 p-1 hover:bg-red-50 rounded">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+        container.appendChild(serviceElement);
+    });
+    
+    // Actualizar IDs de servicios en el formulario
+    const serviceIds = selectedServices.map(s => s.id).join(',');
+    document.getElementById('selectedServicesIds').value = serviceIds;
+    
+    // Actualizar disponibilidad de servicios en el modal
+    updateServiceAvailability();
+}
+
+// Actualizar disponibilidad de servicios en el modal
+function updateServiceAvailability() {
+    const selectedIds = selectedServices.map(s => s.id);
+    
+    // Actualizar cada servicio en el modal
+    document.querySelectorAll('[id^="service_"]').forEach(serviceElement => {
+        const serviceId = serviceElement.id.replace('service_', '');
+        const button = serviceElement.querySelector('.service-add-btn');
+        
+        if (button) {
+            if (selectedIds.includes(serviceId)) {
+                serviceElement.classList.add('opacity-50');
+                button.textContent = 'Agregado';
+                button.disabled = true;
+                button.classList.remove('bg-red-600', 'hover:bg-red-700');
+                button.classList.add('bg-gray-400', 'cursor-not-allowed');
+            } else {
+                serviceElement.classList.remove('opacity-50');
+                button.textContent = 'Agregar';
+                button.disabled = false;
+                button.classList.remove('bg-gray-400', 'cursor-not-allowed');
+                button.classList.add('bg-red-600', 'hover:bg-red-700');
+            }
+        }
+    });
+}
+
+// Actualizar totales
+function updateTotals() {
+    const totalPrice = selectedServices.reduce((sum, service) => sum + service.price, 0);
+    const totalDuration = selectedServices.reduce((sum, service) => sum + service.duration, 0);
+    
+    document.getElementById('totalPrice').textContent = `Bs.${totalPrice.toFixed(2)}`;
+    document.getElementById('totalDuration').textContent = `${totalDuration}min`;
+}
+
+// Actualizar tiempos de servicios
+function updateServiceTimes() {
+    if (!selectedTimeValue) return;
+    
+    let currentTime = selectedTimeValue;
+    selectedServices.forEach((service, index) => {
+        const endTime = calculateEndTime(currentTime, service.duration);
+        const timeElement = document.getElementById(`serviceTime_${index}`);
+        if (timeElement) {
+            timeElement.textContent = `${currentTime} - ${endTime}`;
+        }
+        currentTime = endTime;
+    });
+}
+
+// Remover servicio
+function removeService(index) {
+    selectedServices.splice(index, 1);
+    updateSelectedServicesList();
+    updateTotals();
+    updateServiceTimes();
+    validateForm();
+}
+
+// Abrir modal de servicios
+function openServiceModal() {
+    const modal = document.getElementById('serviceModal');
+    const content = document.getElementById('serviceModalContent');
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Actualizar disponibilidad de servicios
+    updateServiceAvailability();
+}
+
+// Cerrar modal de servicios
+function closeServiceModal() {
+    const modal = document.getElementById('serviceModal');
+    const content = document.getElementById('serviceModalContent');
+    
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    document.body.style.overflow = '';
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+// Agregar servicio a la reserva
+function addServiceToReservation(serviceId, serviceName, servicePrice, serviceDuration) {
+    // Verificar si el servicio ya está agregado
+    const existingService = selectedServices.find(s => s.id === serviceId);
+    if (existingService) {
+        return; // No hacer nada si ya está agregado
+    }
+    
+    // Agregar nuevo servicio
+    selectedServices.push({
+        id: serviceId,
+        name: serviceName,
+        price: parseFloat(servicePrice),
+        duration: parseInt(serviceDuration)
+    });
+    
+    // Cerrar modal de servicios primero
+    closeServiceModal();
+    
+    // Actualizar interfaz del modal principal después de un pequeño delay
+    setTimeout(() => {
+        updateSelectedServicesList();
+        updateTotals();
+        updateServiceTimes();
+        validateForm();
+    }, 350); // Esperar a que termine la animación de cierre
+}
+
+// Generar días de la semana
+function generateWeekDays() {
+    const weekDays = document.getElementById('weekDays');
+    const hoy = new Date();
+    const startOfWeek = new Date(currentDate);
+    startOfWeek.setDate(currentDate.getDate() - currentDate.getDay() + 1); // Lunes
+    
+    const dias = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    
+    // Actualizar mes
+    document.getElementById('currentMonth').textContent = `${meses[currentDate.getMonth()]} ${currentDate.getFullYear()}`;
+    
+    weekDays.innerHTML = '';
+    
+    for (let i = 0; i < 7; i++) {
+        const dia = new Date(startOfWeek);
+        dia.setDate(startOfWeek.getDate() + i);
+        
+        const dayElement = document.createElement('div');
+        dayElement.className = `text-center p-3 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-50 transition-colors duration-300`;
+        
+        // Deshabilitar días pasados
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        dia.setHours(0,0,0,0);
+        
+        if (dia < today) {
+            dayElement.classList.add('opacity-50', 'cursor-not-allowed');
+            dayElement.onclick = null;
+        } else {
+            if (dia.getTime() === today.getTime()) {
+                dayElement.classList.add('bg-red-600', 'text-white', 'border-red-600');
+                selectedDateValue = dia.toISOString().split('T')[0];
+                document.getElementById('selectedDate').value = selectedDateValue;
+            }
+            dayElement.onclick = () => selectDate(dia, dayElement);
+        }
+        
+        dayElement.innerHTML = `
+            <div class="text-sm font-medium">${dias[i]}</div>
+            <div class="text-lg font-bold">${dia.getDate()}</div>
+        `;
+        
+        weekDays.appendChild(dayElement);
+    }
+}
+
+// Seleccionar fecha
+function selectDate(date, element) {
+    // Remover selección anterior
+    document.querySelectorAll('#weekDays > div').forEach(el => {
+        el.classList.remove('bg-red-600', 'text-white', 'border-red-600');
+        el.classList.add('border-gray-200');
+    });
+    
+    // Agregar selección actual
+    element.classList.add('bg-red-600', 'text-white', 'border-red-600');
+    element.classList.remove('border-gray-200');
+    
+    selectedDateValue = date.toISOString().split('T')[0];
+    document.getElementById('selectedDate').value = selectedDateValue;
+    
+    // Regenerar horarios disponibles
+    generateTimeSlots();
+    validateForm();
+}
+
+// Agregar función para convertir formato de hora de 12h a 24h
+function convertTo24Hour(time12h) {
+    const [time, modifier] = time12h.split(' ');
+    let [hours, minutes] = time.split(':');
+    
+    if (hours === '12') {
+        hours = '00';
+    }
+    
+    if (modifier === 'PM') {
+        hours = parseInt(hours, 10) + 12;
+    }
+    
+    // Agregar segundos para cumplir con el formato HH:MM:SS que Django espera
+    return `${hours.toString().padStart(2, '0')}:${minutes}:00`;
+}
+
+// Modificar la función selectTime para convertir el formato
+function selectTime(time, element) {
+    // Remover selección anterior
+    document.querySelectorAll('.time-slot').forEach(el => {
+        el.classList.remove('bg-red-600', 'text-white', 'border-red-600');
+        el.classList.add('border-gray-300');
+    });
+    
+    // Agregar selección actual
+    element.classList.add('bg-red-600', 'text-white', 'border-red-600');
+    element.classList.remove('border-gray-300');
+    
+    selectedTimeValue = time;
+    // Convertir a formato 24h para el formulario
+    const time24h = convertTo24Hour(time);
+    document.getElementById('selectedTime').value = time24h;
+    updateServiceTimes();
+    validateForm();
+    
+    // Verificar disponibilidad del empleado
+    checkEmployeeAvailability();
+}
+
+// Modificar la función generateTimeSlots para manejar la conversión inicial
+function generateTimeSlots() {
+    const slots = document.getElementById('timeSlots');
+    const slotsMañana = ['10:00 AM', '10:15 AM', '10:30 AM', '10:45 AM', '11:00 AM', '11:15 AM'];
+    const slotsTarde = ['2:00 PM', '2:15 PM', '2:30 PM', '2:45 PM', '3:00 PM', '3:15 PM'];
+    const slotsNoche = ['6:00 PM', '6:15 PM', '6:30 PM', '6:45 PM', '7:00 PM', '7:15 PM'];
+    
+    let currentSlots = [];
+    switch(currentTimePeriod) {
+        case 'morning':
+            currentSlots = slotsMañana;
+            break;
+        case 'afternoon':
+            currentSlots = slotsTarde;
+            break;
+        case 'evening':
+            currentSlots = slotsNoche;
+            break;
+        default:
+            currentSlots = slotsMañana;
+    }
+    
+    slots.innerHTML = '';
+    
+    currentSlots.forEach((time, index) => {
+        const timeElement = document.createElement('button');
+        timeElement.type = 'button';
+        timeElement.className = 'time-slot px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors duration-300 text-sm';
+        timeElement.textContent = time;
+        timeElement.onclick = () => selectTime(time, timeElement);
+        
+        // Seleccionar el primer horario por defecto
+        if (index === 0 && !selectedTimeValue) {
+            timeElement.classList.add('bg-red-600', 'text-white', 'border-red-600');
+            selectedTimeValue = time;
+            // Convertir a formato 24h para el formulario
+            const time24h = convertTo24Hour(time);
+            document.getElementById('selectedTime').value = time24h;
+            updateServiceTimes();
+        }
+        
+        slots.appendChild(timeElement);
+    });
+}
+
+// Filtrar horarios por período
+function filterTimeSlots(period) {
+    currentTimePeriod = period;
+    
+    // Actualizar botones de filtro
+    document.querySelectorAll('.time-filter').forEach(btn => {
+        btn.classList.remove('bg-red-100', 'border-red-300');
+        if (btn.dataset.period === period) {
+            btn.classList.add('bg-red-100', 'border-red-300');
+        }
+    });
+    
+    // Limpiar selección de tiempo actual
+    selectedTimeValue = null;
+    document.getElementById('selectedTime').value = '';
+    
+    // Regenerar horarios
+    generateTimeSlots();
+    validateForm();
+}
+
+// Calcular hora de fin
+function calculateEndTime(startTime, duration) {
+    try {
+        // Convertir hora de inicio a minutos
+        const [time, period] = startTime.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let totalMinutes = (period === 'PM' && hours !== 12 ? hours + 12 : hours === 12 && period === 'AM' ? 0 : hours) * 60 + minutes;
+        
+        // Agregar duración
+        totalMinutes += duration;
+        
+        // Convertir de vuelta a formato de hora
+        const endHours = Math.floor(totalMinutes / 60) % 24;
+        const endMinutes = totalMinutes % 60;
+        const endPeriod = endHours >= 12 ? 'PM' : 'AM';
+        const displayHours = endHours > 12 ? endHours - 12 : (endHours === 0 ? 12 : endHours);
+        
+        return `${displayHours}:${endMinutes.toString().padStart(2, '0')} ${endPeriod}`;
+    } catch (error) {
+        console.error('Error calculating end time:', error);
+        return startTime;
+    }
+}
+
+// Verificar disponibilidad del empleado
+async function checkEmployeeAvailability() {
+    const employeeId = document.getElementById('selectedEmployeeId').value;
+    const date = document.getElementById('selectedDate').value;
+    const time = document.getElementById('selectedTime').value;
+    
+    if (!employeeId || !date || !time) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`{% url 'web:check_employee_availability' %}?empleado_id=${employeeId}&fecha=${date}&hora=${time}`);
+        const data = await response.json();
+        
+        const availabilityMessage = document.getElementById('availabilityMessage');
+        const availableEmployees = document.getElementById('availableEmployees');
+        const availableEmployeesList = document.getElementById('availableEmployeesList');
+        
+        if (data.available) {
+            availabilityMessage.classList.add('hidden');
+            availableEmployees.classList.add('hidden');
+        } else {
+            availabilityMessage.classList.remove('hidden');
+            document.getElementById('availabilityText').textContent = data.message;
+            
+            if (data.available_employees && data.available_employees.length > 0) {
+                availableEmployees.classList.remove('hidden');
+                availableEmployeesList.innerHTML = '';
+                
+                data.available_employees.forEach(employee => {
+                    const employeeDiv = document.createElement('div');
+                    employeeDiv.className = 'p-2 hover:bg-gray-100 rounded cursor-pointer';
+                    employeeDiv.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <span>${employee.nombre}</span>
+                            <button onclick="selectStaff('${employee.id_empleado}', '${employee.nombre}')" 
+                                    class="text-sm text-red-600 hover:text-red-700 transition-colors duration-300">
+                                Seleccionar
+                            </button>
+                        </div>
+                    `;
+                    availableEmployeesList.appendChild(employeeDiv);
+                });
+            }
+        }
+    } catch (error) {
+        console.error('Error checking availability:', error);
+    }
+}
+
+// Modificar la función selectStaff para verificar disponibilidad
+function selectStaff(employeeId, employeeName) {
+    selectedEmployee = { id: employeeId, name: employeeName };
+    document.getElementById('selectedEmployeeId').value = employeeId;
+    document.getElementById('selectedStaffName').textContent = employeeName;
+    
+    // Verificar disponibilidad del empleado
+    checkEmployeeAvailability();
+    
+    closeStaffModal();
+}
+
+// Modificar la función validateForm para verificar disponibilidad antes de enviar
+function validateForm() {
+    if (!selectedDateValue) {
+        alert('Por favor, selecciona una fecha');
+        return false;
+    }
+    
+    if (!selectedTimeValue) {
+        alert('Por favor, selecciona una hora');
+        return false;
+    }
+    
+    if (selectedServices.length === 0) {
+        alert('Por favor, selecciona al menos un servicio');
+        return false;
+    }
+    
+    // Verificar disponibilidad antes de enviar
+    const availabilityMessage = document.getElementById('availabilityMessage');
+    if (!availabilityMessage.classList.contains('hidden')) {
+        alert('Este empleado ya tiene una cita programada para esa fecha y hora. Por favor, selecciona otro empleado o cambia la fecha/hora.');
+        return false;
+    }
+    
+    return true;
+}
+
+// Navegación de semana
+function previousWeek() {
+    currentDate.setDate(currentDate.getDate() - 7);
+    generateWeekDays();
+}
+
+function nextWeek() {
+    currentDate.setDate(currentDate.getDate() + 7);
+    generateWeekDays();
+}
+
+// Modal de empleados
+function openStaffModal() {
+    const modal = document.getElementById('staffModal');
+    const content = document.getElementById('staffModalContent');
+    
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+}
+
+function closeStaffModal() {
+    const modal = document.getElementById('staffModal');
+    const content = document.getElementById('staffModalContent');
+    
+    content.classList.remove('scale-100', 'opacity-100');
+    content.classList.add('scale-95', 'opacity-0');
+    document.body.style.overflow = '';
+    
+    setTimeout(() => {
+        modal.classList.add('hidden');
+    }, 300);
+}
+
+// Cerrar modales al hacer clic fuera
+document.getElementById('reservationModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        const staffModal = document.getElementById('staffModal');
+        const serviceModal = document.getElementById('serviceModal');
+        if (staffModal.classList.contains('hidden') && serviceModal.classList.contains('hidden')) {
+            closeReservationModal();
+        }
+    }
+});
+
+document.getElementById('staffModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeStaffModal();
+    }
+});
+
+document.getElementById('serviceModal')?.addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeServiceModal();
+    }
+});
+
+// Cerrar modales con tecla Escape
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const staffModal = document.getElementById('staffModal');
+        const serviceModal = document.getElementById('serviceModal');
+        const reservationModal = document.getElementById('reservationModal');
+        
+        if (!staffModal.classList.contains('hidden')) {
+            closeStaffModal();
+        } else if (!serviceModal.classList.contains('hidden')) {
+            closeServiceModal();
+        } else if (!reservationModal.classList.contains('hidden')) {
+            closeReservationModal();
+        }
+    }
+});
+</script>

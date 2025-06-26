@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ negocio.nombre }} - Detalles del Negocio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        /* Custom shadows matching Material-UI */
+        .shadow-mui-1 {
+            box-shadow: 0px 2px 1px -1px rgba(0,0,0,0.2), 0px 1px 1px 0px rgba(0,0,0,0.14), 0px 1px 3px 0px rgba(0,0,0,0.12);
+        }
+        
+        .shadow-mui-8 {
+            box-shadow: 0px 5px 5px -3px rgba(0,0,0,0.2), 0px 8px 10px 1px rgba(0,0,0,0.14), 0px 3px 14px 2px rgba(0,0,0,0.12);
+        }
+        
+        .map-container {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            z-index: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .map-modal-container {
+            height: 400px;
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+            z-index: 0;
+        }
+        
+        /* Estilos para el mapa principal */
+        #map {
+            height: 300px;
+            width: 100%;
+            border-radius: 8px;
+            position: relative;
+            z-index: 0;
+        }
+        
+        /* Estilos para el mapa modal */
+        #mapModal {
+            height: 400px;
+            width: 100%;
+            position: relative;
+            z-index: 0;
+        }
+        
+        /* Estilos para el marcador personalizado */
+        .custom-marker {
+            width: 40px;
+            height: 40px;
+            background: #f44336;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .custom-marker i {
+            transform: rotate(45deg);
+            color: white;
+            font-size: 18px;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'roboto': ['Roboto', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-100 font-roboto">
+    <!-- Header exacto como en la imagen -->
+    <header class="bg-red-600 text-white">
+        <div class="max-w-7xl mx-auto px-4 py-3">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center space-x-3">
+                    <h1 class="text-xl font-bold">Barber Time</h1>
+                </div>
+                
+                <!-- Barra de búsqueda -->
+                <div class="flex-1 max-w-2xl mx-8">
+                    <div class="relative">
+                        <input type="text" 
+                               placeholder="Buscar negocios, servicios o ubicación..." 
+                               class="w-full px-4 py-2 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-white/20">
+                        <i class="fas fa-search absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500"></i>
+                    </div>
+                </div>
+
+                <!-- User Menu (shown when logged in) -->
+                {% if request.session.cliente_id %}
+                <div class="hidden md:block relative">
+                    <button onclick="toggleUserMenu()" class="text-white hover:bg-white/10 p-2 rounded-full transition-all duration-300 flex items-center">
+                        <i class="fas fa-user-circle text-2xl mr-2"></i>
+                        <span class="text-sm">{{ cliente.usuario }}</span>
+                    </button>
+                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <a href="#" onclick="abrirModalReservas()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-calendar-alt mr-2"></i>Mis Reservas
+                        </a>
+                        <a href="{% url 'web:cerrar_sesion_cliente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+    
+    <!-- Navegación -->
+    <nav class="bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex space-x-8">
+                <a href="{% url 'web:index' %}" class="flex items-center px-4 py-3 hover:bg-gray-800 transition-colors duration-300">
+                    <i class="fas fa-home mr-2"></i>
+                    Inicio
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 hover:bg-gray-800 transition-colors duration-300">
+                    <i class="fas fa-building mr-2"></i>
+                    Negocios
+                </a>
+                {% if request.session.cliente_id %}
+                <a href="#" onclick="abrirModalReservas()" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                    <i class="fas fa-calendar-alt mr-2"></i>Mis Reservas
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="max-w-6xl mx-auto p-6 bg-gray-100">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- Contenido Principal -->
+            <div class="flex-1 max-w-2xl">
+                <!-- Galería de Imágenes -->
+                <div class="relative mb-6 rounded-2xl overflow-hidden bg-white shadow-mui-1">
+                    <div class="relative h-96">
+                        <img src="{{ negocio.foto.url }}" 
+                        alt="{{ negocio.nombre }}" 
+                        class="w-full h-full object-cover">
+                    </div>
+                </div>
+
+                <!-- Información del Negocio -->
+                <div class="bg-white p-6 rounded-2xl shadow-mui-1 mb-6">
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="flex-1 text-center">
+                            <h1 class="text-3xl font-bold text-gray-900 mb-2">{{ negocio.nombre }}</h1>
+                            <p class="text-gray-600 text-base">{{ negocio.descripcion }}</p>
+                        </div>
+                        <div class="flex space-x-2 ml-4">
+                            <button class="p-2 text-gray-500 hover:text-red-600 transition-colors duration-300">
+                                <i class="fas fa-share-alt text-lg"></i>
+                            </button>
+                            <button class="p-2 text-gray-500 hover:text-red-600 transition-colors duration-300">
+                                <i class="fas fa-heart text-lg"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Servicios -->
+                <div class="bg-white p-6 rounded-2xl shadow-mui-1">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-900">Servicios</h2>
+                        <button class="text-gray-500 text-sm hover:text-red-600 transition-colors duration-300">
+                            Buscar servicio
+                        </button>
+                    </div>
+                    <p class="text-gray-600 text-sm mb-6">Servicios más populares</p>
+                    
+                    {% for servicio in servicios %}
+                    <div class="flex justify-between items-center py-4 border-b border-gray-100 last:border-b-0">
+                        <div>
+                            <h3 class="font-semibold text-gray-900 mb-1">{{ servicio.nombre }}</h3>
+                            <p class="text-gray-600 text-sm">{{ servicio.descripcion }}</p>
+                            <p class="text-gray-500 text-xs mt-1">{{ servicio.duracion }} minutos</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xl font-bold text-gray-900">{{ servicio.precio }} Bs</p>
+                            <button onclick="handleReservation('{{ servicio.id_servicio }}', '{{ servicio.nombre }}', '{{ servicio.precio }}', '{{ servicio.duracion }}')" 
+                            class="mt-2 bg-red-600 text-white px-4 py-1 rounded-lg text-sm font-medium hover:bg-red-700 transition-colors duration-300">
+                        Reservar
+                    </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="w-full lg:w-80 space-y-4">
+                <!-- Mapa -->
+                <div class="bg-white p-4 rounded-2xl shadow-mui-1">
+                    <div id="map" class="map-container"></div>
+                    <div class="text-center mt-4">
+                        <button onclick="openMapModal()" class="bg-black/50 text-white px-6 py-2 rounded-full hover:bg-black/70 transition-all duration-300 hover:scale-105">
+                            Ver Ubicación Completa
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Quiénes Somos -->
+                <div class="bg-white p-4 rounded-2xl shadow-mui-1">
+                    <h3 class="text-sm font-bold text-red-600 mb-2 uppercase">Quiénes Somos</h3>
+                    <p class="text-gray-700 text-sm">{{ negocio.descripcion }}</p>
+                </div>
+
+                <!-- Empleados -->
+                <div class="bg-white p-4 rounded-2xl shadow-mui-1">
+                    <h3 class="text-sm font-bold text-red-600 mb-3 uppercase">Empleados</h3>
+                    {% for empleado in empleados %}
+                    <div class="flex items-center space-x-3 mb-3">
+                        <div class="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center">
+                            {% if empleado.foto %}
+                                <img src="{{ empleado.foto.url }}" alt="{{ empleado.nombre }}" class="w-full h-full rounded-full object-cover">
+                            {% else %}
+                                <i class="fas fa-user text-gray-600"></i>
+                            {% endif %}
+                        </div>
+                        <span class="text-gray-700 text-sm font-medium">{{ empleado.nombre }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Horario -->
+                <div class="bg-white p-4 rounded-2xl shadow-mui-1">
+                    <h3 class="text-sm font-bold text-red-600 mb-2 uppercase">Horario de Apertura</h3>
+                    {% for horario in horarios %}
+                    <p class="text-gray-900 font-semibold text-sm mb-1">{{ horario.get_dia_semana_display }}</p>
+                    <p class="text-gray-700 text-sm mb-3">{{ horario.hora_inicio|time:"H:i" }} - {{ horario.hora_fin|time:"H:i" }}</p>
+                    {% endfor %}
+                    <button class="text-red-600 text-sm hover:text-red-700 transition-colors duration-300">
+                        Mostrar semana completa
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal del Mapa -->
+    <div id="mapModalOverlay" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+            <!-- Header del Modal -->
+            <div class="flex items-center justify-between p-6 border-b border-gray-200">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-map-marker-alt text-red-600 text-xl"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Ubicación de {{ negocio.nombre }}</h2>
+                </div>
+                <button onclick="closeMapModal()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Contenido del Modal -->
+            <div class="p-6 max-h-[calc(90vh-120px)] overflow-y-auto">
+                <!-- Información de contacto -->
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-map-marker-alt text-red-600"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">{{ negocio.direccion }}</p>
+                                <p class="text-gray-600 text-sm">{{ negocio.departamento }}</p>
+                            </div>
+                        </div>
+                        {% if negocio.telefono %}
+                        <div class="flex items-center space-x-3">
+                            <i class="fas fa-phone text-green-600"></i>
+                            <div>
+                                <p class="font-medium text-gray-900">{{ negocio.telefono }}</p>
+                                <p class="text-gray-600 text-sm">Teléfono</p>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Mapa grande del modal -->
+                <div class="map-modal-container mb-6">
+                    <div id="mapModal"></div>
+                    
+                    <div class="text-center mt-4">
+                        <a href="https://www.google.com/maps/search/{{ negocio.direccion }}, {{ negocio.departamento }}" 
+                           target="_blank" 
+                           class="inline-block mr-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-300">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            Abrir en Google Maps
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="text-center">
+                    <button onclick="closeMapModal()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors duration-300">
+                        Cerrar Ubicación
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir el contenido del modal de reserva -->
+    {% include 'reserva-modal.html' %}
+
+    <!-- Include modals -->
+    {% include 'modales/modal-login-cliente.html' %}
+    {% include 'modales/modal-reservas.html' %}
+
+    <!-- Reservation Confirmation Modal -->
+    <div id="confirmationModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="confirmationModalContent">
+            <!-- Header fijo -->
+            <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+                <div class="text-center">
+                    <i class="fas fa-check-circle text-6xl text-green-600 mb-4"></i>
+                    <h2 class="text-2xl font-bold text-gray-900">Confirmar Reserva</h2>
+                    <p class="text-gray-600 text-sm">¿Estás seguro de que quieres hacer esta reserva?</p>
+                </div>
+            </div>
+            
+            <!-- Contenido scrollable -->
+            <div class="overflow-y-auto max-h-[calc(90vh-200px)] p-6">
+                <div id="reservationSummary" class="bg-gray-50 rounded-lg p-4 mb-6">
+                    <!-- Reservation details will be populated here -->
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button onclick="closeConfirmationModal()" class="flex-1 py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300">
+                        Cancelar
+                    </button>
+                    <button onclick="confirmReservation()" class="flex-1 py-3 bg-gradient-to-r from-green-600 to-green-500 text-white font-semibold rounded-lg hover:from-green-700 hover:to-green-600 transition-all duration-300">
+                        Confirmar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales para el mapa
+        let map = null;
+        let mapModal = null;
+        let mapModalOpen = false;
+        let pendingReservationData = null;
+
+        // User menu toggle
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Funciones auxiliares para el mapa
+        function hideSmallMap() {
+            const smallMapContainer = document.querySelector('.map-container');
+            if (smallMapContainer) {
+                smallMapContainer.classList.add('hidden');
+            }
+        }
+
+        function showSmallMap() {
+            const smallMapContainer = document.querySelector('.map-container');
+            if (smallMapContainer) {
+                smallMapContainer.classList.remove('hidden');
+            }
+        }
+
+        // Funciones de manejo del modal del mapa
+        function openMapModal() {
+            const modal = document.getElementById('mapModalOverlay');
+            const content = modal.querySelector('.bg-white');
+            hideMap(); // Hide the main map when opening the modal
+            modal.classList.remove('hidden');
+            content.classList.add('scale-100', 'opacity-100');
+            content.classList.remove('scale-95', 'opacity-0');
+            initializeMapModal();
+        }
+
+        function closeMapModal() {
+            const overlay = document.getElementById('mapModalOverlay');
+            overlay.classList.add('hidden');
+            document.body.style.overflow = '';
+            showSmallMap();
+            mapModalOpen = false;
+            if (mapModal) {
+                mapModal.remove();
+                mapModal = null;
+            }
+        }
+
+        // Handle reservation flow
+        function handleReservation(serviceId, serviceName, servicePrice, serviceDuration) {
+            {% if request.session.cliente_id %}
+                // User is logged in, show reservation modal directly
+                openReservationModal(serviceId, serviceName, servicePrice, serviceDuration);
+            {% else %}
+                // User not logged in, store reservation data and show login modal
+                pendingReservationData = {
+                    serviceId: serviceId,
+                    serviceName: serviceName,
+                    servicePrice: servicePrice,
+                    serviceDuration: serviceDuration
+                };
+                abrirModalLoginCliente();
+            {% endif %}
+        }
+
+        // Confirmation Modal functions
+        function openConfirmationModal(reservationData) {
+            const modal = document.getElementById('confirmationModal');
+            const content = document.getElementById('confirmationModalContent');
+            const summary = document.getElementById('reservationSummary');
+            
+            // Populate reservation summary
+            summary.innerHTML = `
+                <div class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="font-medium">Servicio:</span>
+                        <span>${reservationData.serviceName}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Precio:</span>
+                        <span>${reservationData.servicePrice} Bs</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Duración:</span>
+                        <span>${reservationData.serviceDuration} min</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Fecha:</span>
+                        <span>${reservationData.fecha}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="font-medium">Hora:</span>
+                        <span>${reservationData.hora}</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+        }
+
+        function closeConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            const content = document.getElementById('confirmationModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            document.body.style.overflow = '';
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function confirmReservation() {
+            // Submit the reservation form
+            document.getElementById('reservationForm').submit();
+        }
+
+        // Función para manejar el modal de reserva
+        function openReservationModal(serviceId, serviceName, servicePrice, serviceDuration) {
+            // Limpiar servicios anteriores y agregar el servicio inicial
+            selectedServices = [{
+                id: serviceId,
+                name: serviceName,
+                price: parseFloat(servicePrice),
+                duration: parseInt(serviceDuration)
+            }];
+            
+            // Mostrar modal
+            const modal = document.getElementById('reservationModal');
+            const content = document.getElementById('reservationModalContent');
+            modal.classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+            hideSmallMap();
+            
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 10);
+            
+            // Actualizar la lista de servicios seleccionados
+            updateSelectedServicesList();
+            
+            // Actualizar totales
+            updateTotals();
+            
+            // Generar calendario y actualizar interfaz
+            generateWeekDays();
+            generateTimeSlots();
+        }
+
+        function closeReservationModal() {
+            const modal = document.getElementById('reservationModal');
+            const content = document.getElementById('reservationModalContent');
+            showSmallMap();
+            document.body.style.overflow = '';
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        // Function to hide the map
+        function hideMap() {
+            const mapContainer = document.querySelector('.map-container');
+            if (mapContainer) {
+                mapContainer.style.opacity = '0';
+                mapContainer.style.pointerEvents = 'none';
+            }
+        }
+
+        // Function to show the map
+        function showMap() {
+            const mapContainer = document.querySelector('.map-container');
+            if (mapContainer) {
+                mapContainer.style.opacity = '1';
+                mapContainer.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Add event listeners for modals
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all modal overlay elements
+            const modalOverlays = document.querySelectorAll('[id$="Overlay"]');
+            
+            // Add event listeners to each modal overlay
+            modalOverlays.forEach(overlay => {
+                overlay.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        // Hide the map when a modal is opened
+                        hideMap();
+                    }
+                });
+            });
+
+            // Get all close buttons for modals
+            const closeButtons = document.querySelectorAll('[id$="close"]');
+            closeButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Show the map when a modal is closed
+                    showMap();
+                });
+            });
+        });
+
+        // Función para inicializar el mapa modal
+        function initializeMapModal() {
+            try {
+                // Coordenadas del negocio
+                const lat = {{ negocio.latitud }};
+                const lng = {{ negocio.longitud }};
+
+                if (!lat || !lng) {
+                    console.error('No hay coordenadas disponibles para el negocio');
+                    return;
+                }
+
+                // Crear mapa modal
+                mapModal = L.map('mapModal', {
+                    zoomControl: true,
+                    dragging: true,
+                    scrollWheelZoom: true,
+                    doubleClickZoom: true,
+                    boxZoom: true,
+                    tap: true
+                }).setView([lat, lng], 16);
+
+                // Agregar capa de tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(mapModal);
+
+                // Crear marcador personalizado
+                const customMarker = L.divIcon({
+                    html: '<div class="custom-marker"><i class="fas fa-cut"></i></div>',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -40]
+                });
+
+                // Agregar marcador
+                const marker = L.marker([lat, lng], { icon: customMarker }).addTo(mapModal);
+                marker.bindPopup('<h3 class="text-lg font-bold">' + 
+                                '{{ negocio.nombre|safe }}' + '</h3>' +
+                                '<p class="text-gray-600">' + 
+                                '{{ negocio.direccion|safe }}' + '</p>' +
+                                '<p class="text-gray-500">' + 
+                                '{{ negocio.departamento|safe }}' + '</p>').openPopup();
+
+               
+            } catch (error) {
+                console.error('Error inicializando mapa modal:', error);
+            }
+        }
+
+        // Función para inicializar el mapa principal
+        function initializeMainMap() {
+            try {
+                // Coordenadas del negocio
+                const lat = {{ negocio.latitud }};
+                const lng = {{ negocio.longitud }};
+
+                if (!lat || !lng) {
+                    console.error('No hay coordenadas disponibles para el negocio');
+                    return;
+                }
+
+                // Crear mapa principal
+                map = L.map('map').setView([lat, lng], 14);
+
+                // Agregar capa de tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                // Crear marcador personalizado
+                const customMarker = L.divIcon({
+                    html: '<div class="custom-marker"><i class="fas fa-cut"></i></div>',
+                    iconSize: [40, 40],
+                    iconAnchor: [20, 40],
+                    popupAnchor: [0, -40]
+                });
+
+                // Agregar marcador
+                const marker = L.marker([lat, lng], { icon: customMarker }).addTo(map);
+                marker.bindPopup('<h3 class="text-lg font-bold">' + 
+                                '{{ negocio.nombre|safe }}' + '</h3>' +
+                                '<p class="text-gray-600">' + 
+                                '{{ negocio.direccion|safe }}' + '</p>' +
+                                '<p class="text-gray-500">' + 
+                                '{{ negocio.departamento|safe }}' + '</p>').openPopup();
+
+          
+            } catch (error) {
+                console.error('Error inicializando mapa principal:', error);
+            }
+        }
+
+        // Close modals when clicking outside
+        document.getElementById('confirmationModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeConfirmationModal();
+            }
+        });
+
+        document.getElementById('mapModalOverlay')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeMapModal();
+            }
+        });
+
+        // Close user menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const userMenu = document.getElementById('userMenu');
+            const userButton = e.target.closest('button[onclick="toggleUserMenu()"]');
+            
+            if (userMenu && !userMenu.contains(e.target) && !userButton && !userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+
+        // Close modals with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const confirmationModal = document.getElementById('confirmationModal');
+                const mapModal = document.getElementById('mapModalOverlay');
+                
+                if (confirmationModal && !confirmationModal.classList.contains('hidden')) {
+                    closeConfirmationModal();
+                } else if (mapModal && !mapModal.classList.contains('hidden')) {
+                    closeMapModal();
+                }
+            }
+        });
+
+        // Inicializar mapas cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeMainMap();
+            
+            // If user just logged in and has pending reservation data, open reservation modal
+            if (pendingReservationData) {
+                setTimeout(() => {
+                    openReservationModal(
+                        pendingReservationData.serviceId,
+                        pendingReservationData.serviceName,
+                        pendingReservationData.servicePrice,
+                        pendingReservationData.serviceDuration
+                    );
+                    pendingReservationData = null;
+                }, 500);
+            }
+        });
+
+        // Fallback para asegurar que los mapas se inicialicen
+        window.addEventListener('load', function() {
+            if (!map) {
+                initializeMainMap();
+            }
+        });
+
+    </script>
+</body>
+</html>

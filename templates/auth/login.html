@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Iniciar Sesión - Sistema Barbería{% endblock %}
+
+{% block contenido %}
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-rojo-oscuro to-rojo-principal relative overflow-hidden">
+    <!-- Elementos decorativos de fondo -->
+    <div class="absolute inset-0 overflow-hidden">
+        <div class="absolute -top-40 -right-40 w-80 h-80 bg-white opacity-5 rounded-full"></div>
+        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-white opacity-3 rounded-full"></div>
+        <div class="absolute top-1/2 left-1/4 w-32 h-32 bg-rojo-principal opacity-10 rounded-full animate-pulse"></div>
+        <div class="absolute bottom-1/4 right-1/3 w-24 h-24 bg-white opacity-5 rounded-full animate-bounce"></div>
+    </div>
+    
+    <!-- Contenedor principal -->
+    <div class="relative z-10 max-w-md w-full mx-4">
+        <!-- Tarjeta principal -->
+        <div class="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 border border-white/20">
+            <!-- Header con logo y título -->
+            <div class="text-center mb-8">
+                <div class="relative inline-block">
+                    <div class="absolute inset-0 bg-gradient-to-r from-rojo-principal to-rojo-oscuro rounded-full blur-lg opacity-30 animate-pulse"></div>
+                    <div class="relative bg-gradient-to-r from-rojo-principal to-rojo-oscuro p-4 rounded-full">
+                        <i class="fas fa-cut text-4xl text-white"></i>
+                    </div>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mt-4 mb-2">
+                    <span class="bg-gradient-to-r from-rojo-principal to-rojo-oscuro bg-clip-text text-transparent">
+                        Sistema Barbería
+                    </span>
+                </h1>
+                <p class="text-gray-600 font-medium">Panel de Administración</p>
+                <div class="w-16 h-1 bg-gradient-to-r from-rojo-principal to-rojo-oscuro rounded-full mx-auto mt-3"></div>
+            </div>
+            
+            <!-- Mensajes de error -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="bg-red-50 border-l-4 border-red-400 text-red-700 px-4 py-3 rounded-r-lg mb-6 alert-auto-close animate-fadeIn">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <!-- Formulario -->
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Campo Usuario -->
+                <div class="group">
+                    <label for="nombre_usuario" class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-rojo-principal">
+                        <i class="fas fa-user-tie mr-2 text-rojo-principal"></i>Usuario Administrador
+                    </label>
+                    <div class="relative">
+                        <input type="text" 
+                               id="nombre_usuario" 
+                               name="nombre_usuario" 
+                               required 
+                               class="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rojo-principal/20 focus:border-rojo-principal transition-all duration-300 bg-gray-50 focus:bg-white"
+                               placeholder="Ingresa tu usuario">
+                        <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-rojo-principal transition-colors">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Campo Contraseña -->
+                <div class="group">
+                    <label for="contrasena" class="block text-sm font-semibold text-gray-700 mb-2 transition-colors group-focus-within:text-rojo-principal">
+                        <i class="fas fa-shield-alt mr-2 text-rojo-principal"></i>Contraseña
+                    </label>
+                    <div class="relative">
+                        <input type="password" 
+                               id="contrasena" 
+                               name="contrasena" 
+                               required 
+                               class="w-full px-4 py-3 pl-12 pr-12 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-rojo-principal/20 focus:border-rojo-principal transition-all duration-300 bg-gray-50 focus:bg-white"
+                               placeholder="Ingresa tu contraseña">
+                        <div class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 group-focus-within:text-rojo-principal transition-colors">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <button type="button" 
+                                onclick="togglePassword()" 
+                                class="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-rojo-principal transition-colors">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Botón de envío -->
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-rojo-principal to-rojo-oscuro text-white py-3 px-6 rounded-xl font-semibold hover:from-rojo-oscuro hover:to-rojo-principal focus:outline-none focus:ring-4 focus:ring-rojo-principal/30 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] group">
+                    <span class="flex items-center justify-center">
+                        <i class="fas fa-sign-in-alt mr-2 group-hover:animate-pulse"></i>
+                        Acceder al Panel
+                    </span>
+                </button>
+            </form>
+            
+            <!-- Separador -->
+            <div class="relative my-8">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-gray-200"></div>
+                </div>
+                <div class="relative flex justify-center text-sm">
+                    <span class="px-4 bg-white text-gray-500 font-medium">o</span>
+                </div>
+            </div>
+            
+            <!-- Enlace para volver -->
+            <div class="text-center">
+                <a href="{% url 'web:index' %}" 
+                   class="inline-flex items-center text-gray-600 hover:text-rojo-principal transition-colors duration-300 font-medium group">
+                    <i class="fas fa-arrow-left mr-2 group-hover:animate-pulse"></i>
+                    Volver al inicio
+                </a>
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="text-center mt-6">
+            <p class="text-white/80 text-sm">
+                <i class="fas fa-shield-check mr-1"></i>
+                Acceso seguro para administradores
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- JavaScript para funcionalidades adicionales -->
+<script>
+    // Función para mostrar/ocultar contraseña
+    function togglePassword() {
+        const passwordInput = document.getElementById('contrasena');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    }
+    
+    // Auto-cerrar alertas después de 5 segundos
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert-auto-close');
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transform = 'translateX(100%)';
+                setTimeout(() => alert.remove(), 300);
+            }, 5000);
+        });
+    });
+    
+    // Animación de entrada
+    document.addEventListener('DOMContentLoaded', function() {
+        const card = document.querySelector('.bg-white\\/95');
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(20px)';
+        
+        setTimeout(() => {
+            card.style.transition = 'all 0.6s ease-out';
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100);
+    });
+</script>
+
+<!-- Estilos adicionales -->
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .animate-fadeIn {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    /* Efecto de focus mejorado */
+    .group:focus-within label {
+        transform: translateY(-2px);
+    }
+    
+    /* Gradiente animado en el botón */
+    button[type="submit"]:hover {
+        background-size: 200% 200%;
+        animation: gradientShift 2s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+        0% { background-position: 0% 50%; }
+        50% { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+    
+    /* Mejora del backdrop blur */
+    .backdrop-blur-sm {
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
+</style>
+{% endblock %}

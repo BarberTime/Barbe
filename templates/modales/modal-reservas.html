@@ -1,0 +1,257 @@
+<!-- Modal de Reservas del Cliente -->
+<div id="modalReservas" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalReservas">
+        <!-- Messages section -->
+        {% if messages %}
+        <div class="p-4 mb-4">
+            {% for message in messages %}
+            <div class="bg-{% if message.tags == 'error' %}red{% else %}green{% endif %}-100 border-{% if message.tags == 'error' %}red{% else %}green{% endif %}-400 text-{% if message.tags == 'error' %}red{% else %}green{% endif %}-700 px-4 py-3 rounded relative" role="alert">
+                <span class="block sm:inline">{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <!-- Header fijo -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-calendar-alt text-red-600 text-2xl"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Mis Reservas</h2>
+                </div>
+                <button onclick="cerrarModalReservas()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            
+            <!-- Filtros -->
+            <div class="flex flex-wrap gap-2 mt-4">
+                <button onclick="filtrarReservas('todas')" 
+                        class="filtro-reserva px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-red-600 text-white">
+                    Todas
+                </button>
+                <button onclick="filtrarReservas('pendiente')" 
+                        class="filtro-reserva px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Pendientes
+                </button>
+                <button onclick="filtrarReservas('confirmada')" 
+                        class="filtro-reserva px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Confirmadas
+                </button>
+                <button onclick="filtrarReservas('completada')" 
+                        class="filtro-reserva px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Completadas
+                </button>
+                <button onclick="filtrarReservas('cancelada')" 
+                        class="filtro-reserva px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Canceladas
+                </button>
+            </div>
+        </div>
+        
+        <!-- Contenido scrollable -->
+        <div class="overflow-y-auto max-h-[calc(90vh-180px)] p-6">
+            {% if reservas_cliente %}
+                <div id="listaReservas" class="space-y-4">
+                    {% for reserva in reservas_cliente %}
+                    <div class="reserva-item bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow duration-300" 
+                         data-estado="{{ reserva.estado }}">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-cut text-red-600 text-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold text-gray-900">{{ reserva.negocio.nombre }}</h3>
+                                        <p class="text-gray-600 text-sm">
+                                            {% for servicio in reserva.servicios.all %}
+                                                {{ servicio.nombre }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div>
+                                        <span class="text-gray-500">Fecha:</span>
+                                        <p class="font-medium">{{ reserva.fecha|date:"d/m/Y" }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Hora:</span>
+                                        <p class="font-medium">{{ reserva.hora|time:"H:i" }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Empleado:</span>
+                                        <p class="font-medium">{{ reserva.empleado.nombre|default:"Por asignar" }}</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-gray-500">Total:</span>
+                                        <p class="font-medium text-green-600">{{ reserva.total }} Bs</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 md:mt-0 md:ml-4 flex flex-col items-end space-y-2">
+                                <span class="estado-badge px-3 py-1 rounded-full text-xs font-medium
+                                    {% if reserva.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                                    {% elif reserva.estado == 'confirmada' %}bg-blue-100 text-blue-800
+                                    {% elif reserva.estado == 'completada' %}bg-green-100 text-green-800
+                                    {% elif reserva.estado == 'cancelada' %}bg-red-100 text-red-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ reserva.estado|capfirst }}
+                                </span>
+                                
+                                <div class="mt-4 md:mt-0">
+                                    {% if reserva.estado == 'pendiente' %}
+                                    <button onclick="mostrarConfirmacionCancelacion('{{ reserva.id_reserva }}')" 
+                                            class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-300">
+                                        Cancelar Reserva
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-12">
+                    <i class="fas fa-calendar-times text-6xl text-gray-300 mb-4"></i>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No tienes reservas</h3>
+                    <p class="text-gray-600 mb-6">Explora nuestros negocios y haz tu primera reserva</p>
+                    <button onclick="cerrarModalReservas(); scrollToSection('negocios')" 
+                            class="px-6 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-300">
+                        <i class="fas fa-search mr-2"></i>Explorar Negocios
+                    </button>
+                </div>
+            {% endif %}
+        </div>
+        <!-- Add CSRF token input -->
+        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    </div>
+</div>
+
+<!-- Confirmar Cancelación Modal -->
+<div id="confirmarCancelacionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-[70]">
+    <div class="bg-white rounded-lg p-6 w-96">
+        <h3 class="text-xl font-semibold mb-4">¿Estás seguro?</h3>
+        <p class="text-gray-600 mb-6">¿Deseas cancelar esta reserva?</p>
+        <form id="formCancelarReserva" action="{% url 'web:cancelar_reserva' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="reserva_id" id="reservaIdInput">
+            <div class="flex justify-end space-x-4">
+                <button type="button" id="cancelarBtn" onclick="cerrarModalConfirmacion()" 
+                        class="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500">Cancelar</button>
+                <button type="submit" id="confirmarBtn" 
+                        class="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700">Confirmar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function abrirModalReservas() {
+        const modal = document.getElementById('modalReservas');
+        const contenido = document.getElementById('contenidoModalReservas');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            contenido.classList.remove('scale-95', 'opacity-0');
+            contenido.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function cerrarModalReservas() {
+        const modal = document.getElementById('modalReservas');
+        const contenido = document.getElementById('contenidoModalReservas');
+        const confirmarCancelacionModal = document.getElementById('confirmarCancelacionModal');
+        contenido.classList.remove('scale-100', 'opacity-100');
+        contenido.classList.add('scale-95', 'opacity-0');
+        confirmarCancelacionModal.classList.add('hidden');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    function filtrarReservas(estado) {
+        const reservas = document.querySelectorAll('.reserva-item');
+        const botonesFiltro = document.querySelectorAll('.filtro-reserva');
+        
+        // Actualizar botones de filtro
+        botonesFiltro.forEach(boton => {
+            boton.classList.remove('bg-red-600', 'text-white');
+            boton.classList.add('bg-gray-200', 'text-gray-700');
+        });
+        
+        event.target.classList.remove('bg-gray-200', 'text-gray-700');
+        event.target.classList.add('bg-red-600', 'text-white');
+        
+        // Filtrar reservas
+        reservas.forEach(reserva => {
+            if (estado === 'todas' || reserva.dataset.estado === estado) {
+                reserva.style.display = 'block';
+            } else {
+                reserva.style.display = 'none';
+            }
+        });
+    }
+
+    function mostrarConfirmacionCancelacion(reservaId) {
+        // Store the reservation ID in the form
+        document.getElementById('reservaIdInput').value = reservaId;
+        // Show the modal
+        document.getElementById('confirmarCancelacionModal').classList.remove('hidden');
+    }
+
+    function cerrarModalConfirmacion() {
+        // Close the modal
+        document.getElementById('confirmarCancelacionModal').classList.add('hidden');
+        // Clear the reservation ID
+        document.getElementById('reservaIdInput').value = '';
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('confirmarCancelacionModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModalConfirmacion();
+        }
+    });
+
+    // Close modal when clicking the cancel button
+    document.getElementById('cancelarBtn').addEventListener('click', function() {
+        cerrarModalConfirmacion();
+    });
+
+    // Close modal when clicking the confirm button
+    document.getElementById('confirmarBtn').addEventListener('click', function(e) {
+        e.preventDefault(); // Prevent form submission
+        const reservaId = document.getElementById('reservaIdInput').value;
+        if (reservaId) {
+            // Submit the form
+            document.getElementById('formCancelarReserva').submit();
+        }
+    });
+
+    // Close modal when clicking outside the main modal
+    document.getElementById('modalReservas')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModalReservas();
+        }
+    });
+
+    // Close modal with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const confirmacionModal = document.getElementById('confirmarCancelacionModal');
+            if (!confirmacionModal.classList.contains('hidden')) {
+                cerrarModalConfirmacion();
+            } else {
+                const modal = document.getElementById('modalReservas');
+                if (!modal.classList.contains('hidden')) {
+                    cerrarModalReservas();
+                }
+            }
+        }
+    });
+</script>

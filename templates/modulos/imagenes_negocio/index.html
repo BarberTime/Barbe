@@ -1,0 +1,44 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Galería del Negocio{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+        <h3 class="text-lg font-semibold text-gray-900">Imágenes del Negocio</h3>
+        <a href="{% url 'imagenes_negocio:crear' %}" class="bg-rojo-principal text-white px-4 py-2 rounded-md hover:bg-rojo-oscuro transition duration-200">
+            <i class="fas fa-plus mr-2"></i>Agregar Imagen
+        </a>
+    </div>
+    
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {% for imagen in imagenes %}
+            <div class="relative group">
+                <div class="aspect-w-1 aspect-h-1 w-full overflow-hidden rounded-lg bg-gray-200">
+                    <img src="{{ imagen.imagen.url }}" alt="Imagen {{ imagen.id_imagen }}" 
+                         class="h-48 w-full object-cover object-center group-hover:opacity-75 transition-opacity duration-200">
+                </div>
+                <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <a href="{% url 'imagenes_negocio:eliminar' imagen.id_imagen %}" 
+                       class="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition duration-200">
+                        <i class="fas fa-trash text-sm"></i>
+                    </a>
+                </div>
+                <div class="mt-2">
+                    <p class="text-sm text-gray-600">{{ imagen.negocio.nombre }}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-12">
+                <i class="fas fa-images text-gray-300 text-6xl mb-4"></i>
+                <p class="text-gray-500 text-lg mb-4">No hay imágenes en la galería</p>
+                <a href="{% url 'imagenes_negocio:crear' %}" class="bg-rojo-principal text-white px-6 py-2 rounded-md hover:bg-rojo-oscuro transition duration-200">
+                    Agregar Primera Imagen
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

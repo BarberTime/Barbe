@@ -1,0 +1,119 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Dashboard Empleado{% endblock %}
+
+{% block menu_sidebar %}
+<ul class="space-y-2 px-4">
+    <li>
+        <a href="{% url 'web:dashboard_empleado' %}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-rojo-claro hover:text-rojo-principal rounded-md">
+            <i class="fas fa-tachometer-alt mr-3"></i>Dashboard
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'reserva:calendario_empleado' %}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-rojo-claro hover:text-rojo-principal rounded-md">
+            <i class="fas fa-calendar-alt mr-3"></i>Mi Calendario
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'servicio:lista_empleado' %}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-rojo-claro hover:text-rojo-principal rounded-md">
+            <i class="fas fa-cut mr-3"></i>Servicios
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'categoria:lista_empleado' %}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-rojo-claro hover:text-rojo-principal rounded-md">
+            <i class="fas fa-tags mr-3"></i>Categorías
+        </a>
+    </li>
+</ul>
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+    <!-- Mis reservas de hoy -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Mis Reservas de Hoy</h3>
+        </div>
+        <div class="p-6">
+            {% for reserva in mis_reservas_hoy %}
+            <div class="flex items-center justify-between py-3 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-rojo-principal rounded-full flex items-center justify-center text-white text-sm">
+                        {{ reserva.hora|time:"H:i" }}
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">{{ reserva.cliente.nombre }}</p>
+                        <p class="text-sm text-gray-500">{{ reserva.servicio.nombre }}</p>
+                        <p class="text-xs text-gray-400">{{ reserva.servicio.duracion }} min</p>
+                    </div>
+                </div>
+                <span class="px-2 py-1 text-xs font-semibold rounded-full 
+                    {% if reserva.estado == 'confirmada' %}bg-green-100 text-green-800
+                    {% elif reserva.estado == 'pendiente' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-red-100 text-red-800{% endif %}">
+                    {{ reserva.get_estado_display }}
+                </span>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-center py-4">No tienes reservas para hoy</p>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Próximas reservas -->
+    <div class="bg-white rounded-lg shadow">
+        <div class="px-6 py-4 border-b border-gray-200">
+            <h3 class="text-lg font-semibold text-gray-900">Próximas Reservas</h3>
+        </div>
+        <div class="p-6">
+            {% for reserva in proximas_reservas %}
+            <div class="flex items-center justify-between py-3 {% if not forloop.last %}border-b border-gray-200{% endif %}">
+                <div class="flex items-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex flex-col items-center justify-center text-xs">
+                        <span class="font-bold">{{ reserva.fecha|date:"d" }}</span>
+                        <span>{{ reserva.fecha|date:"M" }}</span>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm font-medium text-gray-900">{{ reserva.cliente.nombre }}</p>
+                        <p class="text-sm text-gray-500">{{ reserva.servicio.nombre }}</p>
+                        <p class="text-xs text-gray-400">{{ reserva.hora|time:"H:i" }}</p>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 text-center py-4">No tienes próximas reservas</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Servicios disponibles -->
+<div class="bg-white rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-gray-200">
+        <h3 class="text-lg font-semibold text-gray-900">Servicios Disponibles</h3>
+    </div>
+    <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {% for servicio in servicios %}
+            <div class="border border-gray-200 rounded-lg p-4">
+                {% if servicio.imagen %}
+                <img src="{{ servicio.imagen.url }}" alt="{{ servicio.nombre }}" class="w-full h-32 object-cover rounded-md mb-3">
+                {% else %}
+                <div class="w-full h-32 bg-gray-200 rounded-md mb-3 flex items-center justify-center">
+                    <i class="fas fa-cut text-gray-400 text-2xl"></i>
+                </div>
+                {% endif %}
+                <h4 class="font-semibold text-gray-900">{{ servicio.nombre }}</h4>
+                <p class="text-sm text-gray-600 mb-2">{{ servicio.categoria.nombre }}</p>
+                <div class="flex justify-between items-center">
+                    <span class="text-rojo-principal font-bold">Bs. {{ servicio.precio }}</span>
+                    <span class="text-sm text-gray-500">{{ servicio.duracion }} min</span>
+                </div>
+            </div>
+            {% empty %}
+            <p class="text-gray-500 col-span-full text-center py-4">No hay servicios disponibles</p>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

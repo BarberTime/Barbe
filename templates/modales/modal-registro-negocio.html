@@ -1,0 +1,258 @@
+<!-- Modal de Registro de Negocio -->
+<div id="modalRegistroNegocio" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalNegocio">
+        <!-- Header fijo -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-store text-red-600 text-2xl"></i>
+                    <h2 class="text-xl font-bold text-gray-900">Registrar Negocio</h2>
+                </div>
+                <button onclick="cerrarModalNegocio()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <p class="text-gray-600 text-sm mt-2">Registra tu barbería o salón de belleza</p>
+        </div>
+        
+        <!-- Contenido scrollable -->
+        <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
+            <!-- Opción para ir al login de administradores -->
+            <div class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div class="flex items-center space-x-3 mb-3">
+                    <i class="fas fa-info-circle text-blue-600 text-lg"></i>
+                    <h3 class="font-semibold text-blue-900">¿Ya tienes un negocio registrado?</h3>
+                </div>
+                <p class="text-blue-700 text-sm mb-3">
+                    Si ya eres administrador de un negocio, inicia sesión aquí
+                </p>
+                <a href="{% url 'web:login' %}" 
+                   class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-300 text-sm font-medium">
+                    <i class="fas fa-sign-in-alt mr-2"></i>
+                    Iniciar Sesión como Administrador
+                </a>
+            </div>
+
+            <form method="post" action="{% url 'web:registrar_negocio' %}" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Datos del Usuario Administrador -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-user-tie mr-2 text-red-600"></i>
+                        Datos del Administrador
+                    </h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="usuarioNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-user mr-2"></i>Usuario *
+                            </label>
+                            <input type="text" 
+                                   id="usuarioNegocio" 
+                                   name="usuario" 
+                                   required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                   placeholder="Nombre de usuario">
+                        </div>
+                        
+                        <div>
+                            <label for="passwordNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-lock mr-2"></i>Contraseña *
+                            </label>
+                            <input type="password" 
+                                   id="passwordNegocio" 
+                                   name="password" 
+                                   required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                   placeholder="Contraseña segura">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Datos del Negocio -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                        <i class="fas fa-store mr-2 text-red-600"></i>
+                        Información del Negocio
+                    </h3>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <label for="nombreNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-building mr-2"></i>Nombre del Negocio *
+                            </label>
+                            <input type="text" 
+                                   id="nombreNegocio" 
+                                   name="nombre" 
+                                   required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                   placeholder="Nombre de tu barbería o salón">
+                        </div>
+                        
+                        <div>
+                            <label for="descripcionNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-align-left mr-2"></i>Descripción
+                            </label>
+                            <textarea id="descripcionNegocio" 
+                                      name="descripcion" 
+                                      rows="3"
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                      placeholder="Describe tu negocio y servicios"></textarea>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="departamentoNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-map mr-2"></i>Departamento *
+                                </label>
+                                <select id="departamentoNegocio" 
+                                        name="departamento" 
+                                        required 
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                                    <option value="">Selecciona departamento</option>
+                                    <option value="La Paz">La Paz</option>
+                                    <option value="Cochabamba">Cochabamba</option>
+                                    <option value="Santa Cruz">Santa Cruz</option>
+                                    <option value="Oruro">Oruro</option>
+                                    <option value="Potosí">Potosí</option>
+                                    <option value="Tarija">Tarija</option>
+                                    <option value="Sucre">Sucre</option>
+                                    <option value="Beni">Beni</option>
+                                    <option value="Pando">Pando</option>
+                                </select>
+                            </div>
+                            
+                            <div>
+                                <label for="telefonoNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-phone mr-2"></i>Teléfono *
+                                </label>
+                                <input type="tel" 
+                                       id="telefonoNegocio" 
+                                       name="telefono" 
+                                       required 
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                       placeholder="Número de contacto">
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="direccionNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-map-marker-alt mr-2"></i>Dirección *
+                            </label>
+                            <input type="text" 
+                                   id="direccionNegocio" 
+                                   name="direccion" 
+                                   required 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                   placeholder="Dirección completa del negocio">
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="latitudNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-crosshairs mr-2"></i>Latitud
+                                </label>
+                                <input type="number" 
+                                       id="latitudNegocio" 
+                                       name="latitud" 
+                                       step="any"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                       placeholder="-16.5000">
+                            </div>
+                            
+                            <div>
+                                <label for="longitudNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-crosshairs mr-2"></i>Longitud
+                                </label>
+                                <input type="number" 
+                                       id="longitudNegocio" 
+                                       name="longitud" 
+                                       step="any"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                                       placeholder="-68.1500">
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label for="logoNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-image mr-2"></i>Logo
+                                </label>
+                                <input type="file" 
+                                       id="logoNegocio" 
+                                       name="logo" 
+                                       accept="image/*"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                            </div>
+                            
+                            <div>
+                                <label for="fotoNegocio" class="block text-sm font-medium text-gray-700 mb-2">
+                                    <i class="fas fa-camera mr-2"></i>Foto Principal
+                                </label>
+                                <input type="file" 
+                                       id="fotoNegocio" 
+                                       name="foto" 
+                                       accept="image/*"
+                                       class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex space-x-3">
+                    <button type="button" 
+                            onclick="cerrarModalNegocio()" 
+                            class="flex-1 py-3 bg-gray-300 text-gray-700 font-semibold rounded-lg hover:bg-gray-400 transition-all duration-300">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                            class="flex-1 py-3 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-lg hover:from-red-700 hover:to-red-600 transition-all duration-300">
+                        <i class="fas fa-store mr-2"></i>Registrar Negocio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function abrirModalNegocio() {
+        const modal = document.getElementById('modalRegistroNegocio');
+        const contenido = document.getElementById('contenidoModalNegocio');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            contenido.classList.remove('scale-95', 'opacity-0');
+            contenido.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function cerrarModalNegocio() {
+        const modal = document.getElementById('modalRegistroNegocio');
+        const contenido = document.getElementById('contenidoModalNegocio');
+        contenido.classList.remove('scale-100', 'opacity-100');
+        contenido.classList.add('scale-95', 'opacity-0');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('modalRegistroNegocio')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModalNegocio();
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modalRegistroNegocio');
+            if (modal && !modal.classList.contains('hidden')) {
+                cerrarModalNegocio();
+            }
+        }
+    });
+</script>

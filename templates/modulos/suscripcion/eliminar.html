@@ -1,0 +1,31 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Eliminar Suscripción{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <div class="max-w-md mx-auto">
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="mb-6">
+                <h1 class="text-2xl font-bold text-gray-900">¿Estás seguro de eliminar esta suscripción?</h1>
+                <p class="mt-2 text-gray-600">Negocio: {{ suscripcion.negocio.nombre }}</p>
+                <p class="mt-2 text-gray-600">Plan: {{ suscripcion.plan.nombre }}</p>
+                <p class="mt-2 text-gray-600">Fecha de Inicio: {{ suscripcion.fecha_inicio|date:"d/m/Y" }}</p>
+                <p class="mt-2 text-gray-600">Fecha de Fin: {{ suscripcion.fecha_fin|date:"d/m/Y" }}</p>
+            </div>
+            
+            <form method="post" class="space-y-4">
+                {% csrf_token %}
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'suscripcion:index' %}" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50">Cancelar</a>
+                    <button type="submit" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md">Eliminar Suscripción</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

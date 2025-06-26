@@ -1,0 +1,195 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Categorías{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Mostrar mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header con título y botón -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestión de Categorías</h1>
+            <p class="text-gray-600 mt-1">Organiza tus servicios por categorías para una mejor gestión</p>
+        </div>
+        <a href="{% url 'categoria:crear' %}" 
+           class="inline-flex items-center px-4 py-2 bg-rojo-principal text-white rounded-lg hover:bg-rojo-oscuro transition-colors duration-200 shadow-sm">
+            <i class="fas fa-plus mr-2"></i>Nueva Categoría
+        </a>
+    </div>
+
+    <!-- Estadísticas rápidas -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-blue-100 rounded-lg">
+                    <i class="fas fa-tags text-blue-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Total Categorías</p>
+                    <p class="text-lg font-semibold text-gray-900">{{ categorias|length }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-green-100 rounded-lg">
+                    <i class="fas fa-calendar-plus text-green-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Creadas Este Mes</p>
+                    <p class="text-lg font-semibold text-gray-900">0</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+            <div class="flex items-center">
+                <div class="p-2 bg-purple-100 rounded-lg">
+                    <i class="fas fa-chart-line text-purple-600"></i>
+                </div>
+                <div class="ml-3">
+                    <p class="text-sm font-medium text-gray-600">Más Usada</p>
+                    <p class="text-lg font-semibold text-gray-900">
+                        {% if categorias %}{{ categorias.0.nombre|truncatechars:10 }}{% else %}N/A{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de categorías moderna -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Header de la tabla -->
+        <div class="bg-gray-50 px-6 py-4 border-b border-gray-200">
+            <div class="grid grid-cols-12 gap-4 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div class="col-span-6">
+                    <i class="fas fa-tag mr-2"></i>Categoría
+                </div>
+                <div class="col-span-3">
+                    <i class="fas fa-calendar mr-2"></i>Fecha de Registro
+                </div>
+                <div class="col-span-2">
+                    <i class="fas fa-chart-bar mr-2"></i>Servicios
+                </div>
+                <div class="col-span-1 text-right">
+                    <i class="fas fa-cogs mr-2"></i>Acciones
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenido de la tabla -->
+        <div class="divide-y divide-gray-200">
+            {% for categoria in categorias %}
+            <div class="px-6 py-4 hover:bg-gray-50 transition-colors duration-150">
+                <div class="grid grid-cols-12 gap-4 items-center">
+                    <!-- Categoría -->
+                    <div class="col-span-6">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10">
+                                <div class="h-10 w-10 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                                    {{ categoria.nombre|first|upper }}
+                                </div>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">{{ categoria.nombre }}</p>
+                                <p class="text-xs text-gray-500">
+                                    <i class="fas fa-building mr-1"></i>{{ categoria.negocio.nombre }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Fecha de Registro -->
+                    <div class="col-span-3">
+                        <div class="text-sm">
+                            <p class="font-medium text-gray-900">
+                                <i class="fas fa-calendar-alt mr-1 text-gray-400"></i>
+                                {{ categoria.fecha_registro|date:"d/m/Y" }}
+                            </p>
+                            <p class="text-gray-500">
+                                <i class="fas fa-clock mr-1 text-gray-400"></i>
+                                {{ categoria.fecha_registro|time:"H:i" }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Servicios (placeholder) -->
+                    <div class="col-span-2">
+                        <div class="text-sm">
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                <span class="w-1.5 h-1.5 mr-1.5 bg-blue-400 rounded-full"></span>
+                                0 servicios
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Acciones -->
+                    <div class="col-span-1 text-right">
+                        <div class="flex justify-end space-x-2">
+                            <a href="{% url 'categoria:editar' categoria.id_categoria %}" 
+                               class="inline-flex items-center px-3 py-1.5 border border-blue-300 text-xs font-medium rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition-colors duration-150">
+                                <i class="fas fa-edit mr-1"></i>
+                                Editar
+                            </a>
+                            <a href="{% url 'categoria:eliminar' categoria.id_categoria %}" 
+                               class="inline-flex items-center px-3 py-1.5 border border-red-300 text-xs font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition-colors duration-150">
+                                <i class="fas fa-trash-alt mr-1"></i>
+                                Eliminar
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <!-- Estado vacío -->
+            <div class="px-6 py-12 text-center">
+                <div class="mx-auto h-12 w-12 text-gray-400">
+                    <i class="fas fa-tags text-4xl"></i>
+                </div>
+                <h3 class="mt-4 text-sm font-medium text-gray-900">No hay categorías</h3>
+                <p class="mt-2 text-sm text-gray-500">
+                    Comienza creando tu primera categoría para organizar tus servicios.
+                </p>
+                <div class="mt-6">
+                    <a href="{% url 'categoria:crear' %}" 
+                       class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-rojo-principal hover:bg-rojo-oscuro">
+                        <i class="fas fa-plus mr-2"></i>
+                        Nueva Categoría
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+/* Animaciones suaves */
+.hover\:bg-gray-50:hover {
+    background-color: #f9fafb;
+}
+
+/* Gradientes para avatares */
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+/* Efectos de hover para botones */
+.transition-colors {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+</style>
+{% endblock %}

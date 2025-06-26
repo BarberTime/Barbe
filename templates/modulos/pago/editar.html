@@ -1,0 +1,30 @@
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+            <label for="monto" class="block text-sm font-medium text-gray-700 mb-1">
+                <i class="fas fa-dollar-sign mr-2"></i>Monto *
+            </label>
+            <input type="number" name="monto" id="monto" step="0.01" min="0" value="{{ pago.monto }}" class="form-input w-full" required>
+        </div>
+        <div class="col-span-2">
+            <label for="metodo_pago" class="block text-sm font-medium text-gray-700 mb-1">
+                <i class="fas fa-credit-card mr-2"></i>Método de Pago *
+            </label>
+            <select name="metodo_pago" id="metodo_pago" class="form-select w-full" required>
+                <option value="">Seleccionar método...</option>
+                <option value="efectivo" {% if pago.metodo_pago == 'efectivo' %}selected{% endif %}>Efectivo</option>
+                <option value="tarjeta" {% if pago.metodo_pago == 'tarjeta' %}selected{% endif %}>Tarjeta de Crédito/Débito</option>
+                <option value="transferencia" {% if pago.metodo_pago == 'transferencia' %}selected{% endif %}>Transferencia Bancaria</option>
+                <option value="movil" {% if pago.metodo_pago == 'movil' %}selected{% endif %}>Pago Móvil</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <button type="submit" class="bg-rojo-principal text-white px-4 py-2 rounded-lg hover:bg-rojo-oscuro transition-colors duration-200">
+            <i class="fas fa-save mr-2"></i>Guardar Cambios
+        </button>
+    </div>
+</form>

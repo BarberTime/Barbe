@@ -1,0 +1,30 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Eliminar Usuario{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar_superadmin.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Eliminar Usuario</h1>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <div class="mb-6">
+            <p class="text-gray-700">¿Estás seguro de que quieres eliminar el usuario "{{ usuario.usuario }}"?</p>
+            <p class="text-red-500 mt-2">Esta acción no se puede deshacer.</p>
+        </div>
+        
+        <form method="POST" action="{% url 'web:superadmin_usuario_eliminar' usuario.id_usuario %}" class="flex justify-end">
+            {% csrf_token %}
+            <a href="{% url 'web:superadmin_usuario' %}" class="px-4 py-2 text-gray-700 hover:text-gray-900 mr-4">
+                Cancelar
+            </a>
+            <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600">
+                Eliminar Usuario
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Servicios - Vista Empleado{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Servicios Disponibles</h1>
+        <p class="text-gray-600 mt-1">Consulta todos los servicios disponibles en el negocio</p>
+    </div>
+
+    <!-- Lista de servicios para empleados -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for servicio in servicios %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow duration-150">
+            {% if servicio.imagen %}
+                <img src="{{ servicio.imagen.url }}" alt="{{ servicio.nombre }}" class="w-full h-48 object-cover">
+            {% else %}
+                <div class="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+                    <i class="fas fa-cut text-white text-4xl"></i>
+                </div>
+            {% endif %}
+            
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <h3 class="text-lg font-medium text-gray-900">{{ servicio.nombre }}</h3>
+                    <span class="text-lg font-bold text-rojo-principal">Bs. {{ servicio.precio }}</span>
+                </div>
+                
+                <p class="text-sm text-gray-600 mb-2">
+                    <i class="fas fa-tag mr-1"></i>{{ servicio.categoria.nombre }}
+                </p>
+                
+                <p class="text-sm text-gray-700 mb-4">{{ servicio.descripcion|truncatewords:15 }}</p>
+                
+                <div class="flex justify-between items-center text-sm text-gray-500">
+                    <span>
+                        <i class="fas fa-clock mr-1"></i>{{ servicio.duracion }} min
+                    </span>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        <span class="w-1.5 h-1.5 mr-1.5 bg-green-400 rounded-full"></span>
+                        Disponible
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="mx-auto h-12 w-12 text-gray-400">
+                <i class="fas fa-cut text-4xl"></i>
+            </div>
+            <h3 class="mt-4 text-sm font-medium text-gray-900">No hay servicios disponibles</h3>
+            <p class="mt-2 text-sm text-gray-500">
+                Aún no se han creado servicios para este negocio.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Gradientes para avatares */
+.bg-gradient-to-br {
+    background-image: linear-gradient(to bottom right, var(--tw-gradient-stops));
+}
+
+/* Efectos de hover */
+.transition-shadow {
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+</style>
+{% endblock %}

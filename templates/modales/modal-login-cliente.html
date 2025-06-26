@@ -1,0 +1,228 @@
+<!-- Modal de Login/Registro de Cliente -->
+<div id="modalLoginCliente" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-hidden transform scale-95 opacity-0 transition-all duration-300" id="contenidoModalCliente">
+        <!-- Header fijo -->
+        <div class="sticky top-0 bg-white border-b border-gray-200 p-6 rounded-t-2xl">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-red-600 text-2xl"></i>
+                    <h2 id="tituloModalCliente" class="text-xl font-bold text-gray-900">Iniciar Sesión</h2>
+                </div>
+                <button onclick="cerrarModalLoginCliente()" class="text-gray-500 hover:text-gray-700 transition-colors duration-300">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <p id="subtituloModalCliente" class="text-gray-600 text-sm mt-2">Ingresa a tu cuenta para continuar</p>
+        </div>
+        
+        <!-- Contenido scrollable -->
+        <div class="overflow-y-auto max-h-[calc(90vh-140px)] p-6">
+            <!-- Formulario de Login -->
+            <form id="formularioLoginCliente" method="post" action="{% url 'web:iniciar_sesion_cliente' %}" class="space-y-4">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                
+                <div>
+                    <label for="usuarioLogin" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-user mr-2"></i>Usuario
+                    </label>
+                    <input type="text" 
+                           id="usuarioLogin" 
+                           name="usuario" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Ingresa tu usuario">
+                </div>
+                
+                <div>
+                    <label for="passwordLogin" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Contraseña
+                    </label>
+                    <input type="password" 
+                           id="passwordLogin" 
+                           name="password" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Ingresa tu contraseña">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-red-700 hover:to-red-600 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                </button>
+            </form>
+            
+            <!-- Formulario de Registro -->
+            <form id="formularioRegistroCliente" method="post" action="{% url 'web:registrar_cliente' %}" class="space-y-4 hidden">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombreRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2"></i>Nombre
+                        </label>
+                        <input type="text" 
+                               id="nombreRegistro" 
+                               name="nombre" 
+                               required 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                               placeholder="Tu nombre">
+                    </div>
+                    
+                    <div>
+                        <label for="apellidoRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-user mr-2"></i>Apellido
+                        </label>
+                        <input type="text" 
+                               id="apellidoRegistro" 
+                               name="apellido" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                               placeholder="Tu apellido">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="usuarioRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-at mr-2"></i>Usuario
+                    </label>
+                    <input type="text" 
+                           id="usuarioRegistro" 
+                           name="usuario" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Elige un nombre de usuario">
+                </div>
+                
+                <div>
+                    <label for="passwordRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-lock mr-2"></i>Contraseña
+                    </label>
+                    <input type="password" 
+                           id="passwordRegistro" 
+                           name="password" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Crea una contraseña">
+                </div>
+                
+                <div>
+                    <label for="telefonoRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-phone mr-2"></i>Teléfono
+                    </label>
+                    <input type="tel" 
+                           id="telefonoRegistro" 
+                           name="telefono" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Tu número de teléfono">
+                </div>
+                
+                <div>
+                    <label for="direccionRegistro" class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-map-marker-alt mr-2"></i>Dirección
+                    </label>
+                    <input type="text" 
+                           id="direccionRegistro" 
+                           name="direccion" 
+                           required 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-600 focus:border-transparent"
+                           placeholder="Tu dirección">
+                </div>
+                
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-green-600 to-green-500 text-white py-3 px-4 rounded-lg font-semibold hover:from-green-700 hover:to-green-600 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-user-plus mr-2"></i>Crear Cuenta
+                </button>
+            </form>
+            
+            <!-- Toggle entre formularios -->
+            <div class="mt-6 text-center">
+                <button id="alternarFormularioCliente" onclick="alternarFormularioCliente()" class="text-red-600 hover:text-red-700 font-medium transition-colors duration-300">
+                    ¿No tienes cuenta? Regístrate aquí
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mostrandoLoginCliente = true;
+
+    function abrirModalLoginCliente() {
+        const modal = document.getElementById('modalLoginCliente');
+        const contenido = document.getElementById('contenidoModalCliente');
+        modal.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            contenido.classList.remove('scale-95', 'opacity-0');
+            contenido.classList.add('scale-100', 'opacity-100');
+        }, 10);
+    }
+
+    function cerrarModalLoginCliente() {
+        const modal = document.getElementById('modalLoginCliente');
+        const contenido = document.getElementById('contenidoModalCliente');
+        contenido.classList.remove('scale-100', 'opacity-100');
+        contenido.classList.add('scale-95', 'opacity-0');
+        document.body.style.overflow = '';
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            reiniciarFormulariosCliente();
+        }, 300);
+    }
+
+    function alternarFormularioCliente() {
+        const formularioLogin = document.getElementById('formularioLoginCliente');
+        const formularioRegistro = document.getElementById('formularioRegistroCliente');
+        const titulo = document.getElementById('tituloModalCliente');
+        const subtitulo = document.getElementById('subtituloModalCliente');
+        const botonAlternar = document.getElementById('alternarFormularioCliente');
+
+        if (mostrandoLoginCliente) {
+            // Cambiar a registro
+            formularioLogin.classList.add('hidden');
+            formularioRegistro.classList.remove('hidden');
+            titulo.textContent = 'Crear Cuenta';
+            subtitulo.textContent = 'Regístrate para hacer reservas';
+            botonAlternar.textContent = '¿Ya tienes cuenta? Inicia sesión aquí';
+            mostrandoLoginCliente = false;
+        } else {
+            // Cambiar a login
+            formularioRegistro.classList.add('hidden');
+            formularioLogin.classList.remove('hidden');
+            titulo.textContent = 'Iniciar Sesión';
+            subtitulo.textContent = 'Ingresa a tu cuenta para continuar';
+            botonAlternar.textContent = '¿No tienes cuenta? Regístrate aquí';
+            mostrandoLoginCliente = true;
+        }
+    }
+
+    function reiniciarFormulariosCliente() {
+        // Resetear formularios
+        document.getElementById('formularioLoginCliente').reset();
+        document.getElementById('formularioRegistroCliente').reset();
+        
+        // Volver al estado inicial (login)
+        if (!mostrandoLoginCliente) {
+            alternarFormularioCliente();
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    document.getElementById('modalLoginCliente')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModalLoginCliente();
+        }
+    });
+
+    // Cerrar modal con tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('modalLoginCliente');
+            if (modal && !modal.classList.contains('hidden')) {
+                cerrarModalLoginCliente();
+            }
+        }
+    });
+</script>

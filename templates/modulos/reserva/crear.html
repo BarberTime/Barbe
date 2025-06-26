@@ -1,0 +1,270 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Crear Reserva{% endblock %}
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+{% block contenido_dashboard %}
+<div class="min-h-screen bg-gray-50 py-6">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <!-- Breadcrumb -->
+        <nav class="flex mb-6" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a href="{% url 'reserva:index' %}" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-rojo-principal">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        Reservas
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                        <span class="text-sm font-medium text-gray-500">Crear Reserva</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        <!-- Header -->
+        <div class="mb-8">
+            <div class="flex items-center mb-2">
+                <div class="flex-shrink-0">
+                    <div class="w-8 h-8 bg-rojo-principal rounded-lg flex items-center justify-center">
+                        <i class="fas fa-plus text-white text-sm"></i>
+                    </div>
+                </div>
+                <h1 class="ml-3 text-2xl font-bold text-gray-900">Crear Nueva Reserva</h1>
+            </div>
+            <p class="text-gray-600">Completa la información de la nueva cita para tu cliente</p>
+        </div>
+
+        <!-- Mostrar mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-6 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- Formulario -->
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+
+            <!-- Información del Cliente -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-6 h-6 bg-blue-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <h3 class="ml-3 text-lg font-medium text-gray-900">Información del Cliente</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="cliente" class="block text-sm font-medium text-gray-700 mb-2">
+                            Cliente <span class="text-red-500">*</span>
+                        </label>
+                        <select id="cliente" name="cliente" required 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rojo-principal focus:border-transparent transition-colors">
+                            <option value="">Selecciona un cliente</option>
+                            
+                            {% for cliente in clientes %}
+                            <option value="{{ cliente.id_cliente }}">
+                                {{ cliente.nombre }} {{ cliente.apellido }}
+                                {% if cliente.telefono %} - {{ cliente.telefono }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <!-- Servicios -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-6 h-6 bg-purple-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-cut text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <h3 class="ml-3 text-lg font-medium text-gray-900">Servicios</h3>
+                </div>
+                
+                <div class="space-y-3">
+                    <label class="block text-sm font-medium text-gray-700">
+                        Selecciona los servicios <span class="text-red-500">*</span>
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-60 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                        {% for servicio in servicios %}
+                        <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors">
+                            <input type="checkbox" name="servicios" value="{{ servicio.id_servicio }}" 
+                                   data-precio="{{ servicio.precio }}"
+                                   class="servicio-checkbox h-4 w-4 text-rojo-principal focus:ring-rojo-principal border-gray-300 rounded">
+                            <div class="ml-3 flex-1">
+                                <div class="text-sm font-medium text-gray-900">{{ servicio.nombre }}</div>
+                                <div class="text-sm text-gray-500">
+                                    Bs. {{ servicio.precio }}
+                                    {% if servicio.duracion %} • {{ servicio.duracion }} min{% endif %}
+                                </div>
+                            </div>
+                        </label>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Total calculado -->
+                    <div class="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm font-medium text-gray-700">Total estimado:</span>
+                            <span class="text-lg font-bold text-rojo-principal">
+                                Bs. <span id="total-precio">0.00</span>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información de la Cita -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-6 h-6 bg-green-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-calendar text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <h3 class="ml-3 text-lg font-medium text-gray-900">Información de la Cita</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="fecha" class="block text-sm font-medium text-gray-700 mb-2">
+                            Fecha <span class="text-red-500">*</span>
+                        </label>
+                        <input type="date" id="fecha" name="fecha" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rojo-principal focus:border-transparent transition-colors">
+                    </div>
+                    
+                    <div>
+                        <label for="hora" class="block text-sm font-medium text-gray-700 mb-2">
+                            Hora <span class="text-red-500">*</span>
+                        </label>
+                        <input type="time" id="hora" name="hora" required 
+                               class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rojo-principal focus:border-transparent transition-colors">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asignación de Empleado -->
+            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div class="flex items-center mb-4">
+                    <div class="flex-shrink-0">
+                        <div class="w-6 h-6 bg-orange-500 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-user-tie text-white text-xs"></i>
+                        </div>
+                    </div>
+                    <h3 class="ml-3 text-lg font-medium text-gray-900">Asignación de Empleado</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4">
+                    <div>
+                        <label for="empleado" class="block text-sm font-medium text-gray-700 mb-2">
+                            Empleado (Opcional)
+                        </label>
+                        <select id="empleado" name="empleado" 
+                                class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-rojo-principal focus:border-transparent transition-colors">
+                            <option value="">Sin asignar - Se asignará automáticamente</option>
+                            {% for empleado in empleados %}
+                            <option value="{{ empleado.id_empleado }}">
+                                {{ empleado.nombre }} {{ empleado.apellido }}
+                                {% if empleado.especialidad %} - {{ empleado.especialidad }}{% endif %}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Si no seleccionas un empleado, se asignará automáticamente según disponibilidad.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="flex justify-end space-x-4 pt-6">
+                <a href="{% url 'reserva:index' %}" 
+                   class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition-colors">
+                    <i class="fas fa-times mr-2"></i>Cancelar
+                </a>
+                <button type="submit" 
+                        class="px-6 py-3 bg-rojo-principal text-white rounded-lg font-medium hover:bg-rojo-oscuro transition-colors shadow-sm">
+                    <i class="fas fa-save mr-2"></i>Crear Reserva
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// Establecer fecha mínima como hoy
+document.addEventListener('DOMContentLoaded', function() {
+    const fechaInput = document.getElementById('fecha');
+    const today = new Date().toISOString().split('T')[0];
+    fechaInput.min = today;
+    
+    // Calcular total cuando se seleccionan servicios
+    const checkboxes = document.querySelectorAll('.servicio-checkbox');
+    const totalElement = document.getElementById('total-precio');
+    
+    function calcularTotal() {
+        let total = 0;
+        checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+                total += parseFloat(checkbox.dataset.precio);
+            }
+        });
+        totalElement.textContent = total.toFixed(2);
+    }
+    
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', calcularTotal);
+    });
+    
+    // Validación de formulario
+    const form = document.querySelector('form');
+    form.addEventListener('submit', function(e) {
+        const serviciosSeleccionados = document.querySelectorAll('.servicio-checkbox:checked');
+        if (serviciosSeleccionados.length === 0) {
+            e.preventDefault();
+            alert('Por favor, selecciona al menos un servicio.');
+            return false;
+        }
+    });
+});
+</script>
+
+<style>
+/* Estilos personalizados */
+.transition-colors {
+    transition-property: background-color, border-color, color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+
+/* Hover effects para checkboxes */
+.servicio-checkbox:checked + div {
+    background-color: #fef3f2;
+}
+
+/* Focus states mejorados */
+input:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* Animación suave para el total */
+#total-precio {
+    transition: all 0.3s ease;
+}
+</style>
+{% endblock %}

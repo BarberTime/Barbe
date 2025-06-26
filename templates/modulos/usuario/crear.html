@@ -1,0 +1,40 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Crear Usuario{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar_superadmin.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <h1 class="text-2xl font-bold text-gray-900 mb-6">Crear Usuario</h1>
+    
+    <div class="bg-white rounded-lg shadow p-6">
+        <form method="POST" action="{% url 'web:superadmin_usuario_crear' %}" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label for="usuario" class="block text-sm font-medium text-gray-700">Usuario</label>
+                <input type="text" name="usuario" id="usuario" required 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-rojo-principal focus:ring-rojo-principal">
+            </div>
+            
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Contraseña</label>
+                <input type="password" name="password" id="password" required 
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-rojo-principal focus:ring-rojo-principal">
+            </div>
+            
+            <div class="flex justify-end">
+                <a href="{% url 'web:superadmin_usuario' %}" class="px-4 py-2 text-gray-700 hover:text-gray-900 mr-4">
+                    Cancelar
+                </a>
+                <button type="submit" class="px-4 py-2 bg-rojo-principal text-white rounded-md hover:bg-rojo-oscuro">
+                    Crear Usuario
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

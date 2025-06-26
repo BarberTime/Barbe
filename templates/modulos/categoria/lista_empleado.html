@@ -1,0 +1,70 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Categorías - Vista Empleado{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">Categorías de Servicios</h1>
+        <p class="text-gray-600 mt-1">Consulta las categorías disponibles en {{ negocio.nombre }}</p>
+    </div>
+
+    <!-- Lista de categorías para empleados -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for categoria in categorias %}
+        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow duration-150">
+            <div class="flex items-center mb-4">
+                <div class="flex-shrink-0">
+                    <div class="h-12 w-12 rounded-full bg-gradient-to-r from-purple-400 to-purple-600 flex items-center justify-center text-white font-semibold">
+                        {{ categoria.nombre|first|upper }}
+                    </div>
+                </div>
+                <div class="ml-4">
+                    <h3 class="text-lg font-medium text-gray-900">{{ categoria.nombre }}</h3>
+                    <p class="text-sm text-gray-500">
+                        <i class="fas fa-calendar mr-1"></i>
+                        {{ categoria.fecha_registro|date:"d/m/Y" }}
+                    </p>
+                </div>
+            </div>
+            
+            <div class="mt-4">
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <span class="w-1.5 h-1.5 mr-1.5 bg-blue-400 rounded-full"></span>
+                    Categoría activa
+                </span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <div class="mx-auto h-12 w-12 text-gray-400">
+                <i class="fas fa-tags text-4xl"></i>
+            </div>
+            <h3 class="mt-4 text-sm font-medium text-gray-900">No hay categorías</h3>
+            <p class="mt-2 text-sm text-gray-500">
+                Aún no se han creado categorías para este negocio.
+            </p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+/* Gradientes para avatares */
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+
+/* Efectos de hover */
+.transition-shadow {
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
+}
+</style>
+{% endblock %}

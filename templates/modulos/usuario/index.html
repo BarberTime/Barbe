@@ -1,0 +1,79 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Usuarios{% endblock %}
+
+{% block menu_sidebar %}
+{% include 'includes/menu_sidebar_superadmin.html' %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Header con título y botón -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Usuarios</h1>
+            <p class="text-gray-600">Gestiona los usuarios del sistema</p>
+        </div>
+        <div>
+            <a href="{% url 'web:superadmin_usuario_crear' %}" class="bg-rojo-principal hover:bg-rojo-oscuro text-white px-4 py-2 rounded-md">
+                <i class="fas fa-plus mr-2"></i>Nuevo Usuario
+            </a>
+        </div>
+    </div>
+
+    <!-- Tabla de usuarios -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+                {% for usuario in usuarios %}
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">{{ usuario.usuario.usuario }}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold bg-blue-100 text-blue-800 rounded-full">
+                            {{ usuario.rol.nombre }}
+                        </span>
+                    </td>
+                    {% if usuario.rol.nombre == 'Empleado' and not usuario.empleado_set.exists %}
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <form action="{% url 'web:superadmin_usuario_crear_empleado' %}" method="POST" class="inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="usuario_id" value="{{ usuario.usuario.id_usuario }}">
+                            <input type="hidden" name="negocio_id" value="{{ usuario.negocio.id_negocio }}">
+                            <button type="submit" 
+                                    class="text-sm text-red-600 hover:text-red-700 transition-colors duration-300">
+                                Crear Empleado
+                            </button>
+                        </form>
+                    </td>
+                    {% else %}
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <a href="{% url 'web:superadmin_usuario_editar' usuario.usuario.id_usuario %}" class="text-blue-600 hover:text-blue-900 mr-4">
+                            <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{% url 'web:superadmin_usuario_eliminar' usuario.usuario.id_usuario %}" class="text-red-600 hover:text-red-700">
+                            <i class="fas fa-trash"></i> Eliminar
+                        </a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="px-6 py-4 text-center">
+                        <p class="text-gray-500">No hay usuarios registrados</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

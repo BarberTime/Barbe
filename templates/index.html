@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarberTime - Reservas de Barberías</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        .float-animation { animation: float 6s ease-in-out infinite; }
+        .float-animation-reverse { animation: float 8s ease-in-out infinite reverse; }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .backdrop-blur {
+            backdrop-filter: blur(10px);
+        }
+        
+        .carousel-container {
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+        .carousel-container::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full z-50 bg-gradient-to-r from-black/80 to-gray-900/80 backdrop-blur">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex-shrink-0">
+                    <h1 class="text-white text-xl font-bold">Barber Time</h1>
+                </div>
+                
+                <!-- Desktop Navigation -->
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-4">
+                        <a href="#" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                            <i class="fas fa-home mr-2"></i>Inicio
+                        </a>
+                        <a href="#negocios" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                            <i class="fas fa-building mr-2"></i>Negocios
+                        </a>
+                        {% if request.session.cliente_id %}
+                        <a href="#" onclick="abrirModalReservas()" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                            <i class="fas fa-calendar-alt mr-2"></i>Mis Reservas
+                        </a>
+                        {% endif %}
+                        
+                        <button onclick="abrirModalLoginCliente()" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Iniciar Sesión
+                        </button>
+                        <button onclick="abrirModalNegocio()" class="text-white hover:bg-white/10 px-3 py-2 rounded-md text-sm font-medium transition-all duration-300 flex items-center">
+                            <i class="fas fa-user-plus mr-2"></i>Registra tu negocio
+                        </button>
+                    </div>
+                </div>
+
+                <!-- User Menu (shown when logged in) -->
+                {% if request.session.cliente_id %}
+                <div class="hidden md:block relative">
+                    <button onclick="toggleUserMenu()" class="text-white hover:bg-white/10 p-2 rounded-full transition-all duration-300 flex items-center">
+                        <i class="fas fa-user-circle text-2xl mr-2"></i>
+                        <span class="text-sm">{{ cliente.usuario }}</span>
+                    </button>
+                    <div id="userMenu" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-50">
+                        <a href="#" onclick="abrirModalReservas()" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-calendar-alt mr-2"></i>Mis Reservas
+                        </a>
+                        <a href="{% url 'web:cerrar_sesion_cliente' %}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Mobile menu button -->
+                <div class="md:hidden">
+                    <button onclick="toggleMobileMenu()" class="text-white hover:bg-white/20 p-2 rounded-md transition-all duration-300">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Mobile Navigation Menu -->
+        <div id="mobileMenu" class="md:hidden hidden bg-black/95 backdrop-blur">
+            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                <div class="flex justify-between items-center p-4 border-b border-white/10">
+                    <h3 class="text-white font-bold text-lg">Menú</h3>
+                    <button onclick="toggleMobileMenu()" class="text-white">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                <a href="#" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-home mr-3 w-5"></i>Inicio
+                </a>
+                <a href="#negocios" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-building mr-3 w-5"></i>Negocios
+                </a>
+                <a href="#reservas" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-calendar mr-3 w-5"></i>Reservas
+                </a>
+                {% if not request.session.cliente_id %}
+                <button onclick="abrirModalLoginCliente(); toggleMobileMenu();" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center w-full text-left">
+                    <i class="fas fa-sign-in-alt mr-3 w-5"></i>Iniciar Sesión
+                </button>
+                <button onclick="abrirModalNegocio(); toggleMobileMenu();" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center w-full text-left">
+                    <i class="fas fa-user-plus mr-3 w-5"></i>Registrarse
+                </button>
+                {% else %}
+                <button onclick="abrirModalReservas(); toggleMobileMenu();" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center w-full text-left">
+                    <i class="fas fa-calendar-alt mr-3 w-5"></i>Mis Reservas
+                </button>
+                <a href="{% url 'web:cerrar_sesion_cliente' %}" class="text-white hover:bg-white/10 block px-3 py-2 rounded-md text-base font-medium flex items-center">
+                    <i class="fas fa-sign-out-alt mr-3 w-5"></i>Cerrar Sesión
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative min-h-screen overflow-hidden bg-gradient-to-br from-gray-900 to-black">
+        <!-- Background Image with Overlay -->
+        <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image: url('https://cdn.milenio.com/uploads/media/2016/06/16/the-barber-spa-the-shaving.jpeg');">
+            <div class="absolute inset-0 bg-gradient-to-br from-black/80 via-gray-900/70 to-black/80"></div>
+        </div>
+        
+        <!-- Decorative Elements -->
+        <div class="absolute top-20 left-10 w-30 h-30 rounded-full bg-red-600/10 blur-3xl float-animation"></div>
+        <div class="absolute bottom-24 right-15 w-40 h-40 rounded-full bg-red-600/5 blur-3xl float-animation-reverse"></div>
+        
+        <!-- Content -->
+        <div class="relative z-10 flex flex-col min-h-screen">
+            <!-- Spacer for fixed nav -->
+            <div class="h-16"></div>
+            
+            <!-- Main Content -->
+            <div class="flex-1 flex items-center justify-center">
+                <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <div class="space-y-8">
+                        <div class="space-y-6 md:space-y-8 items-center">
+                            <h1 class="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-tight" style="
+                                line-height: 1.1;
+                                text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+                            ">
+                                <span class="block">MENOS TIEMPO</span>
+                                <span class="block gradient-text">MÁS RESERVAS</span>
+                            </h1>
+                            
+                            <p class="text-white/90 max-w-2xl mx-auto leading-relaxed font-normal" style="font-size: 1.1rem; line-height: 1.6;">
+                                Reserva tu cita en los mejores salones de belleza y barberías de Bolivia. Rápido, fácil y sin complicaciones.
+                            </p>
+                        </div>
+                        <!-- Statistics -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-2xl mx-auto">
+                            <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+                                <i class="fas fa-building text-3xl text-red-600 mb-2"></i>
+                                <div class="text-2xl md:text-3xl font-bold text-white">500+</div>
+                                <div class="text-sm text-white/70 font-medium">Negocios</div>
+                            </div>
+                            <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+                                <i class="fas fa-users text-3xl text-red-600 mb-2"></i>
+                                <div class="text-2xl md:text-3xl font-bold text-white">10K+</div>
+                                <div class="text-sm text-white/70 font-medium">Clientes</div>
+                            </div>
+                            <div class="bg-white/5 backdrop-blur border border-white/10 rounded-2xl p-6 hover:bg-white/10 hover:-translate-y-1 transition-all duration-300">
+                                <i class="fas fa-chart-line text-3xl text-red-600 mb-2"></i>
+                                <div class="text-2xl md:text-3xl font-bold text-white">50K+</div>
+                                <div class="text-sm text-white/70 font-medium">Reservas</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Search Section -->
+                        <div class="space-y-6 max-w-2xl mx-auto">
+                            <div class="relative">
+                                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-500 text-xl"></i>
+                                </div>
+                                <input type="text" placeholder="Buscar negocios..." 
+                                       class="w-full pl-12 pr-4 py-4 md:py-6 text-lg rounded-2xl bg-white/95 backdrop-blur border-none focus:bg-white focus:ring-4 focus:ring-red-600/10 transition-all duration-300">
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                                <button onclick="scrollToSection('negocios')" class="px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-2xl shadow-lg shadow-red-600/30 hover:from-red-700 hover:to-red-600 hover:-translate-y-1 hover:shadow-xl hover:shadow-red-600/40 transition-all duration-300">
+                                    Explorar Negocios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="negocios" class="py-16 md:py-20" style="background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Título mejorado -->
+            <div class="text-center mb-12 md:mb-16">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-red-600 to-red-500 rounded-2xl mb-6">
+                    <i class="fas fa-store text-white text-2xl"></i>
+                </div>
+                <h2 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-4">
+                    Negocios <span class="gradient-text">Destacados</span>
+                </h2>
+                <p class="text-gray-600 text-lg max-w-2xl mx-auto leading-relaxed">
+                    Descubre los mejores salones y barberías de Bolivia, seleccionados especialmente para ti
+                </p>
+                <div class="w-24 h-1 bg-gradient-to-r from-red-600 to-red-500 rounded-full mx-auto mt-6"></div>
+            </div>
+            
+            <div class="relative">
+                <!-- Botones de navegación mejorados -->
+                <button onclick="scrollCarousel('left')" 
+                        class="absolute z-20 -left-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-100 transition-all duration-300 flex items-center justify-center hover:bg-gray-50 hover:scale-110 hover:shadow-xl group">
+                    <i class="fas fa-chevron-left text-gray-700 group-hover:text-red-600 transition-colors duration-300"></i>
+                </button>
+                
+                <button onclick="scrollCarousel('right')" 
+                        class="absolute z-20 -right-6 top-1/2 transform -translate-y-1/2 w-12 h-12 bg-white rounded-full shadow-lg border border-gray-100 transition-all duration-300 flex items-center justify-center hover:bg-gray-50 hover:scale-110 hover:shadow-xl group">
+                    <i class="fas fa-chevron-right text-gray-700 group-hover:text-red-600 transition-colors duration-300"></i>
+                </button>
+                
+                <!-- Carrusel de tarjetas mejorado -->
+                <div id="carousel" class="flex gap-6 overflow-x-auto carousel-container py-8" style="padding-left: 32px; padding-right: 32px;">
+                    
+                    <!-- Tarjeta de Negocio 1 -->
+                    {% for negocio in negocios_destacados %}
+                    <div class="business-card flex-none bg-white rounded-3xl shadow-lg overflow-hidden" style="width: 380px; height: 520px;">
+                        <!-- Imagen del negocio -->
+                        <div class="relative h-48 bg-gradient-to-br from-gray-200 to-gray-300 overflow-hidden">
+                            <img src="{{ negocio.foto.url }}" 
+                                 alt="{{ negocio.nombre }}" 
+                                 class="w-full h-full object-cover transition-transform duration-500 hover:scale-110">
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                            
+                            <!-- Badge de calificación -->
+                            <div class="absolute top-4 right-4 rating-badge text-white px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1">
+                                <i class="fas fa-star text-yellow-300"></i>
+                                4.9
+                            </div>
+                        </div>
+                    
+                        <!-- Contenido de la tarjeta -->
+                        <div class="p-6 h-72 flex flex-col justify-between">
+                            <div class="space-y-4">
+                                <!-- Título y descripción -->
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 mb-2 line-clamp-1">{{ negocio.nombre }}</h3>
+                                    <p class="text-gray-600 text-sm leading-relaxed line-clamp-2">
+                                        {{ negocio.descripcion }}
+                                    </p>
+                                </div>
+                                
+                                <!-- Información de contacto -->
+                                <div class="space-y-3">
+                                    <!-- Dirección -->
+                                    <div class="flex items-start space-x-3">
+                                        <div class="w-8 h-8 bg-red-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-map-marker-alt text-red-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-gray-700 text-sm font-medium line-clamp-1">{{ negocio.direccion }}</p>
+                                            <p class="text-gray-500 text-xs">{{ negocio.departamento }}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Teléfono -->
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-8 h-8 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                                            <i class="fas fa-phone text-green-600 text-sm"></i>
+                                        </div>
+                                        <div class="flex-1">
+                                            <a href="tel:{{ negocio.telefono }}" 
+                                               class="text-gray-700 text-sm font-medium hover:text-green-600 transition-colors duration-300">
+                                                {{ negocio.telefono }}
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Botón de acción -->
+                            <div class="pt-4">
+                                <div class="flex items-center justify-between">
+                                    <a href="{% url 'web:detalle_negocio' negocio.id_negocio %}" 
+                                       class="w-full bg-gradient-to-r from-red-600 to-red-500 text-white py-3 px-4 rounded-xl font-semibold hover:from-red-700 hover:to-red-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-center">
+                                        Ver Detalles
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resto del contenido igual que antes... -->
+    <section class="py-12 md:py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <!-- Imagen principal -->
+                <div class="flex-1 w-full relative">
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-600 group">
+                        <img src="https://img.freepik.com/foto-gratis/hombre-revisando-telefono-mientras-corta-pelo_23-2148242784.jpg?ga=GA1.1.527834109.1746621935&w=740" 
+                             alt="Imagen promocional" 
+                             class="w-full h-72 sm:h-80 md:h-96 object-cover transition-transform duration-600 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-black/10"></div>
+                    </div>
+                    
+                    <!-- Elemento decorativo -->
+                    <div class="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-gradient-to-br from-red-600/10 to-red-600/5 blur-xl -z-10"></div>
+                </div>
+                
+                <!-- Contenido -->
+                <div class="flex-1 w-full space-y-6 md:space-y-8">
+                    <div>
+                        <h2 class="font-extrabold text-gray-900 leading-tight mb-6" style="font-size: 2rem; font-weight: 800; color: #1a1a1a; line-height: 1.1;">
+                            Barber<span class="gradient-text">_Time</span> para ti
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed font-normal" style="font-size: 1.1rem; line-height: 1.6; color: #666;">
+                            Que las filas no te quiten tu tiempo, reserva ahora mismo y disfruta de un servicio de calidad sin esperas.
+                        </p>
+                    </div>
+                    
+                    <button onclick="scrollToSection('negocios')" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-2xl shadow-lg shadow-red-600/30 hover:from-red-700 hover:to-red-600 hover:-translate-y-0.5 group" 
+                            style="font-size: 1.1rem; font-weight: 600; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
+                        Ver Barberías
+                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                    </button>
+                    
+                    <!-- Imagen de tarjeta -->
+                    <div class="max-w-sm rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-400 group">
+                        <img src="https://img.freepik.com/vector-premium/fondo-concepto-reserva-hotel_23-2148146111.jpg" 
+                             alt="Imagen de característica" 
+                             class="w-full h-40 md:h-44 object-cover transition-transform duration-400 group-hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Segunda Card: Suscribe tu Negocio (Reversed) -->
+    <section class="py-12 md:py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row-reverse items-center gap-8 md:gap-12">
+                <!-- Imagen principal -->
+                <div class="flex-1 w-full relative">
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-600 group">
+                        <img src="https://images.pexels.com/photos/2061820/pexels-photo-2061820.jpeg?auto=compress&cs=tinysrgb&w=600" 
+                             alt="Imagen promocional" 
+                             class="w-full h-72 sm:h-80 md:h-96 object-cover transition-transform duration-600 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-black/10"></div>
+                    </div>
+                    
+                    <!-- Elemento decorativo -->
+                    <div class="absolute -top-5 -left-5 w-20 h-20 rounded-full bg-gradient-to-br from-red-600/10 to-red-600/5 blur-xl -z-10"></div>
+                </div>
+                
+                <!-- Contenido -->
+                <div class="flex-1 w-full space-y-6 md:space-y-8">
+                    <div>
+                        <h2 class="font-extrabold text-gray-900 leading-tight mb-6" style="font-size: 2rem; font-weight: 800; color: #1a1a1a; line-height: 1.1;">
+                            Barber<span class="gradient-text">_Time</span> para ti
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed font-normal" style="font-size: 1.1rem; line-height: 1.6; color: #666;">
+                            Empieza a gestionar tu negocio más rápido y fácilmente con Barber_Time. Todo en el mismo lugar, desde reservas hasta pagos.
+                        </p>
+                    </div>
+                    
+                    <button onclick="abrirModalNegocio()" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-2xl shadow-lg shadow-red-600/30 hover:from-red-700 hover:to-red-600 hover:-translate-y-0.5 group" 
+                            style="font-size: 1.1rem; font-weight: 600; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
+                        Suscribe tu Negocio
+                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                    </button>
+                    
+                    <!-- Imagen de tarjeta -->
+                    <div class="max-w-sm rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-400 group">
+                        <img src="https://img.freepik.com/vector-premium/fondo-concepto-reserva-hotel_23-2148146111.jpg" 
+                             alt="Imagen de característica" 
+                             class="w-full h-40 md:h-44 object-cover transition-transform duration-400 group-hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Tercera Card: Contáctanos -->
+    <section class="py-12 md:py-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+                <!-- Imagen principal -->
+                <div class="flex-1 w-full relative">
+                    <div class="relative rounded-2xl overflow-hidden shadow-2xl hover:shadow-3xl transition-all duration-600 group">
+                        <img src="https://img.freepik.com/foto-gratis/herramientas-profesion-peluquero_23-2150668471.jpg?ga=GA1.1.527834109.1746621935&semt=ais_hybrid&w=740" 
+                             alt="Imagen promocional" 
+                             class="w-full h-72 sm:h-80 md:h-96 object-cover transition-transform duration-600 group-hover:scale-105">
+                        <div class="absolute inset-0 bg-gradient-to-br from-black/10 to-black/10"></div>
+                    </div>
+                    
+                    <!-- Elemento decorativo -->
+                    <div class="absolute -top-5 -right-5 w-20 h-20 rounded-full bg-gradient-to-br from-red-600/10 to-red-600/5 blur-xl -z-10"></div>
+                </div>
+                
+                <!-- Contenido -->
+                <div class="flex-1 w-full space-y-6 md:space-y-8">
+                    <div>
+                        <h2 class="font-extrabold text-gray-900 leading-tight mb-6" style="font-size: 2rem; font-weight: 800; color: #1a1a1a; line-height: 1.1;">
+                            Barber<span class="gradient-text">_Time</span> para ti
+                        </h2>
+                        <p class="text-gray-600 leading-relaxed font-normal" style="font-size: 1.1rem; line-height: 1.6; color: #666;">
+                            Obtén una cotización personalizada para tu negocio y descubre cómo podemos ayudarte a crecer.
+                        </p>
+                    </div>
+                    
+                    <button onclick="scrollToFooter()" class="inline-flex items-center px-8 py-4 bg-gradient-to-r from-red-600 to-red-500 text-white font-semibold rounded-2xl shadow-lg shadow-red-600/30 hover:from-red-700 hover:to-red-600 hover:-translate-y-0.5 group" 
+                            style="font-size: 1.1rem; font-weight: 600; box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3);">
+                        Contáctanos
+                        <i class="fas fa-arrow-right ml-2 transition-transform duration-300 group-hover:translate-x-1"></i>
+                    </button>
+                    
+                    <!-- Imagen de tarjeta -->
+                    <div class="max-w-sm rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-400 group">
+                        <img src="https://img.freepik.com/foto-gratis/rendimiento-grafico-digital-superposicion-manos-empresario_53876-101943.jpg?ga=GA1.1.527834109.1746621935&semt=ais_hybrid&w=740" 
+                             alt="Imagen de característica" 
+                             class="w-full h-40 md:h-44 object-cover transition-transform duration-400 group-hover:scale-105">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-b from-gray-900 to-black text-white pt-12 md:pt-16 pb-8">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <!-- Logo y descripción -->
+                <div class="md:col-span-1">
+                    <div class="space-y-4">
+                        <h3 class="text-2xl font-bold">Barber Time</h3>
+                        <p class="text-white/70 leading-relaxed max-w-md">
+                            La plataforma líder para reservas en barberías. Conectamos clientes con los mejores profesionales de Bolivia.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Enlaces rápidos -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Enlaces Rápidos</h4>
+                    <div class="space-y-3">
+                        <a href="#" class="block text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">Inicio</a>
+                        <a href="#negocios" class="block text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">Negocios</a>
+                        <a href="#" class="block text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">Nosotros</a>
+                        <a href="#" class="block text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300">Contacto</a>
+                    </div>
+                </div>
+                
+                <!-- Contacto -->
+                <div>
+                    <h4 class="text-lg font-bold mb-4">Contacto</h4>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-map-marker-alt text-sm"></i>
+                            </div>
+                            <span class="text-white/70">La Paz, Bolivia</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-phone text-sm"></i>
+                            </div>
+                            <span class="text-white/70">+591 7889655</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center">
+                                <i class="fas fa-envelope text-sm"></i>
+                            </div>
+                            <span class="text-white/70">info@barbertime.com</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Bottom section -->
+            <div class="border-t border-white/10 pt-6">
+                <div class="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                    <p class="text-white/50 text-center md:text-left">
+                        &copy; 2025 BarberTime. Todos los derechos reservados
+                    </p>
+                    
+                    <div class="flex space-x-2">
+                        <a href="#" class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-red-600 hover:scale-110 transition-all duration-300">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-red-600 hover:scale-110 transition-all duration-300">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center text-white/50 hover:text-white hover:bg-red-600 hover:scale-110 transition-all duration-300">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Include all modals -->
+    {% include 'modales/modal-login-cliente.html' %}
+    {% include 'modales/modal-registro-negocio.html' %}
+    {% include 'modales/modal-reservas.html' %}
+
+    <script>
+        // Mobile menu toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // User menu toggle
+        function toggleUserMenu() {
+            const menu = document.getElementById('userMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Carousel functions
+        function scrollCarousel(direction) {
+            const carousel = document.getElementById('carousel');
+            const scrollAmount = 350;
+            const scrollLeft = direction === 'left' ? -scrollAmount : scrollAmount;
+            carousel.scrollBy({
+                left: scrollLeft,
+                behavior: 'smooth'
+            });
+        }
+
+        // Smooth scroll to section
+        function scrollToSection(sectionId) {
+            document.getElementById(sectionId).scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        function scrollToFooter() {
+            document.querySelector('footer').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', function(e) {
+            const menu = document.getElementById('mobileMenu');
+            const userMenu = document.getElementById('userMenu');
+            const button = e.target.closest('button[onclick="toggleMobileMenu()"]');
+            const userButton = e.target.closest('button[onclick="toggleUserMenu()"]');
+            
+            if (!menu.contains(e.target) && !button && !menu.classList.contains('hidden')) {
+                menu.classList.add('hidden');
+            }
+            
+            if (userMenu && !userMenu.contains(e.target) && !userButton && !userMenu.classList.contains('hidden')) {
+                userMenu.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

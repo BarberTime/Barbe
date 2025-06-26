@@ -1,0 +1,237 @@
+{% extends 'dashboard/base_dashboard.html' %}
+
+{% block titulo_pagina %}Negocios{% endblock %}
+
+{% block menu_sidebar %}
+{% if rol == 'superadmin' %}
+    {% include 'includes/menu_sidebar_superadmin.html' %}
+{% else %}
+    {% include 'includes/menu_sidebar.html' %}
+{% endif %}
+{% endblock %}
+
+{% block contenido_dashboard %}
+<div class="p-6">
+    <!-- Mostrar mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-4 p-4 rounded-md {% if message.tags == 'success' %}bg-green-50 border border-green-200 text-green-800{% elif message.tags == 'error' %}bg-red-50 border border-red-200 text-red-800{% elif message.tags == 'warning' %}bg-yellow-50 border border-yellow-200 text-yellow-800{% else %}bg-blue-50 border border-blue-200 text-blue-800{% endif %}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Header con título y botón -->
+    <div class="mb-8 flex justify-between items-center">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900">Gestión de Negocios</h1>
+            <p class="text-gray-600 mt-1">Administra la información de tu negocio</p>
+        </div>
+        {% if not negocio %}
+        <a href="{% url 'negocio:crear' %}" 
+           class="inline-flex items-center px-4 py-2 bg-rojo-principal text-white rounded-lg hover:bg-rojo-oscuro transition-colors duration-200 shadow-sm">
+            <i class="fas fa-plus mr-2"></i>Crear Negocio
+        </a>
+        {% endif %}
+    </div>
+
+    {% if negocio %}
+    <!-- Información del negocio -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <!-- Header con imagen de fondo -->
+        <div class="relative h-48 bg-gradient-to-r from-rojo-principal to-rojo-oscuro">
+            {% if negocio.foto %}
+            <img src="{{ negocio.foto.url }}" alt="{{ negocio.nombre }}" class="w-full h-full object-cover opacity-50">
+            {% endif %}
+            <div class="absolute inset-0 bg-black bg-opacity-30"></div>
+            <div class="absolute bottom-4 left-6 text-white">
+                <div class="flex items-center">
+                    {% if negocio.logo %}
+                    <img src="{{ negocio.logo.url }}" alt="Logo" class="w-16 h-16 rounded-full border-4 border-white mr-4 object-cover">
+                    {% else %}
+                    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-store text-rojo-principal text-2xl"></i>
+                    </div>
+                    {% endif %}
+                    <div>
+                        <h2 class="text-2xl font-bold">{{ negocio.nombre }}</h2>
+                        <p class="text-lg opacity-90">
+                            <i class="fas fa-map-marker-alt mr-1"></i>{{ negocio.departamento }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="absolute top-4 right-4">
+                <a href="{% url 'negocio:editar' negocio.id_negocio %}" 
+                   class="inline-flex items-center px-4 py-2 bg-white text-rojo-principal rounded-lg hover:bg-gray-100 transition-colors duration-200 shadow-sm">
+                    <i class="fas fa-edit mr-2"></i>Editar
+                </a>
+            </div>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="p-6">
+            <!-- Estadísticas rápidas -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-blue-100 rounded-lg">
+                            <i class="fas fa-calendar text-blue-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-600">Registrado</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ negocio.fecha_registro|date:"d/m/Y" }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-green-100 rounded-lg">
+                            <i class="fas fa-phone text-green-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-600">Teléfono</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ negocio.telefono }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-purple-100 rounded-lg">
+                            <i class="fas fa-user text-purple-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-600">Propietario</p>
+                            <p class="text-lg font-semibold text-gray-900">{{ usuario.nombre }} {{ usuario.apellido }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <div class="p-2 bg-yellow-100 rounded-lg">
+                            <i class="fas fa-check-circle text-yellow-600"></i>
+                        </div>
+                        <div class="ml-3">
+                            <p class="text-sm font-medium text-gray-600">Estado</p>
+                            <p class="text-lg font-semibold text-gray-900">Activo</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Información detallada -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Información básica -->
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-info-circle text-blue-500 mr-2"></i>
+                            Información Básica
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Descripción</label>
+                                <p class="mt-1 text-sm text-gray-900">{{ negocio.descripcion }}</p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Dirección</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    <i class="fas fa-map-marker-alt text-gray-400 mr-1"></i>
+                                    {{ negocio.direccion }}
+                                </p>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Departamento</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    <i class="fas fa-map text-gray-400 mr-1"></i>
+                                    {{ negocio.departamento }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Información de contacto y ubicación -->
+                <div class="space-y-6">
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="text-lg font-medium text-gray-900 mb-4 flex items-center">
+                            <i class="fas fa-map-marked-alt text-green-500 mr-2"></i>
+                            Ubicación y Contacto
+                        </h3>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Teléfono</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    <i class="fas fa-phone text-gray-400 mr-1"></i>
+                                    {{ negocio.telefono }}
+                                </p>
+                            </div>
+                            {% if negocio.longitud and negocio.latitud %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Coordenadas</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    <i class="fas fa-crosshairs text-gray-400 mr-1"></i>
+                                    {{ negocio.latitud }}, {{ negocio.longitud }}
+                                </p>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <label class="block text-sm font-medium text-gray-500">Fecha de Registro</label>
+                                <p class="mt-1 text-sm text-gray-900">
+                                    <i class="fas fa-calendar text-gray-400 mr-1"></i>
+                                    {{ negocio.fecha_registro|date:"d/m/Y H:i" }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Acciones rápidas -->
+            <div class="mt-8 flex justify-end space-x-4">
+                <a href="{% url 'negocio:detalle' negocio.id_negocio %}" 
+                   class="inline-flex items-center px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200">
+                    <i class="fas fa-eye mr-2"></i>Ver Detalles
+                </a>
+                <a href="{% url 'negocio:editar' negocio.id_negocio %}" 
+                   class="inline-flex items-center px-4 py-2 bg-rojo-principal text-white rounded-lg hover:bg-rojo-oscuro transition-colors duration-200 shadow-sm">
+                    <i class="fas fa-edit mr-2"></i>Editar Negocio
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Estado vacío -->
+    <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <div class="mx-auto h-12 w-12 text-gray-400">
+            <i class="fas fa-store text-4xl"></i>
+        </div>
+        <h3 class="mt-4 text-sm font-medium text-gray-900">No tienes un negocio registrado</h3>
+        <p class="mt-2 text-sm text-gray-500">
+            Comienza creando tu negocio para poder gestionar servicios, empleados y reservas.
+        </p>
+        <div class="mt-6">
+            <a href="{% url 'negocio:crear' %}" 
+               class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-rojo-principal hover:bg-rojo-oscuro">
+                <i class="fas fa-plus mr-2"></i>
+                Crear Negocio
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+/* Animaciones suaves */
+.transition-colors {
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
+}
+
+/* Gradientes para el header */
+.bg-gradient-to-r {
+    background-image: linear-gradient(to right, var(--tw-gradient-stops));
+}
+</style>
+{% endblock %}

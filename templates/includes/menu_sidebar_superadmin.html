@@ -1,0 +1,29 @@
+{% load static %}
+
+<ul class="space-y-2">
+    <li>
+        <a href="{% url 'web:dashboard_superadmin' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+            <i class="fas fa-home mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+            <span class="font-medium">Dashboard</span>
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'web:superadmin_negocio' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+            <i class="fas fa-store mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+            <span class="font-medium">Negocios</span>
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'web:superadmin_usuario' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+            <i class="fas fa-users mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+            <span class="font-medium">Usuarios</span>
+        </a>
+    </li>
+    <li>
+        <a href="{% url 'web:superadmin_suscripcion' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+            <i class="fas fa-credit-card mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+            <span class="font-medium">Suscripciones</span>
+        </a>
+    </li>
+   
+</ul>

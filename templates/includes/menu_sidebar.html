@@ -1,0 +1,111 @@
+{% load static %}
+
+{% if usuario_rol %}
+    {% if usuario_rol.rol.nombre.lower == 'superadmin' %}
+    <ul class="space-y-2">
+        <li>
+            <a href="{% url 'web:dashboard_superadmin' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-tachometer-alt mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'negocio:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-store mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Negocios</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'empleado:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-users mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Empleados</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'cliente:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-user mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Clientes</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'servicio:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-cut mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Servicios</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'categoria:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-tags mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Categorías</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'pago:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-money-bill-wave mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Pagos</span>
+            </a>
+        </li>
+        {% if negocio %}
+        <li>
+            <a href="{% url 'negocio:editar' negocio.id_negocio %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-store mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Mi Negocio</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+    {% elif usuario_rol.rol.nombre.lower == 'barbero' %}
+    <ul class="space-y-2">
+        <li>
+            <a href="{% url 'web:dashboard_barbero' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-tachometer-alt mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'reserva:calendario' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-calendar-alt mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Calendario</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'empleado:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-users mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Empleados</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'servicio:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-cut mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Servicios</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'categoria:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-tags mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Categorías</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'reserva:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-clipboard-list mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Reservas</span>
+            </a>
+        </li>
+        <li>
+            <a href="{% url 'horario:index' %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-clock mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Horario</span>
+            </a>
+        </li>
+        {% if negocio %}
+        <li>
+            <a href="{% url 'negocio:editar' negocio.id_negocio %}" class="flex items-center px-4 py-3 text-gray-300 hover:bg-gradient-to-r hover:from-rojo-principal hover:to-rojo-oscuro hover:text-white rounded-lg transition-all duration-200 group">
+                <i class="fas fa-store mr-3 text-lg group-hover:scale-110 transition-transform duration-200"></i>
+                <span class="font-medium">Mi Negocio</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+    {% endif %}
+{% endif %}
